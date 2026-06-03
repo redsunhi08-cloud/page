@@ -10,6 +10,8 @@ import {
   FileText, 
   BarChart2, 
   Eye, 
+  EyeOff,
+  Mail,
   Edit3, 
   Save, 
   ArrowLeft, 
@@ -34,7 +36,9 @@ import {
   AlertCircle,
   ThumbsUp,
   ThumbsDown,
-  Activity
+  Activity,
+  Smartphone,
+  Monitor
 } from "lucide-react";
 import { 
   ProductInfo, 
@@ -194,7 +198,63 @@ const INITIAL_PROJECTS: Project[] = [
 ];
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<"intro" | "dashboard" | "form-step-1" | "form-step-2" | "form-loading" | "result" | "diagnosis-input" | "diagnosis-loading" | "diagnosis-result">("intro");
+  const [currentView, setCurrentView] = useState<"intro" | "dashboard" | "form-step-1" | "form-step-2" | "form-loading" | "result" | "diagnosis-input" | "diagnosis-loading" | "diagnosis-result" | "login" | "signup">("intro");
+  
+  // User authentication State
+  const [user, setUser] = useState<{ email: string; name: string } | null>(() => {
+    const saved = localStorage.getItem("selling_page_user");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (err) {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  const [loginEmail, setLoginEmail] = useState("redsunhi08@gmail.com");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [signupName, setSignupName] = useState("");
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  // All Users list state for Admin panel
+  const [allUsers, setAllUsers] = useState<{ email: string; name: string; date: string; role: string; projectsCount: number }[]>(() => {
+    const saved = localStorage.getItem("selling_page_all_users");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (err) {}
+    }
+    return [
+      { email: "redsunhi08@gmail.com", name: "김사장님", date: "2026-05-12", role: "우수회원", projectsCount: 14 },
+      { email: "admin@sellingpage.co.kr", name: "관리자", date: "2026-01-01", role: "마스터", projectsCount: 8 },
+      { email: "apple_farm@naver.com", name: "사과청년", date: "2026-05-28", role: "일반회원", projectsCount: 3 },
+      { email: "gildong@gildong.com", name: "홍길동", date: "2026-06-01", role: "일반회원", projectsCount: 1 }
+    ];
+  });
+
+  // Diagnostics history list state for Admin panel
+  const [diagnosisHistory, setDiagnosisHistory] = useState<{ id: string; email: string; prdName: string; category: string; score: number; status: string; date: string }[]>(() => {
+    const saved = localStorage.getItem("selling_page_diagnosis_history");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (err) {}
+    }
+    return [
+      { id: "diag_1", email: "apple_farm@naver.com", prdName: "유기농 착즙 사과즙", category: "식품", score: 84, status: "개선필요", date: "2026-06-02 14:15" },
+      { id: "diag_2", email: "gildong@gildong.com", prdName: "미니 휴대용 무소음 선풍기", category: "디지털/가전", score: 58, status: "취약", date: "2026-06-03 09:40" },
+      { id: "diag_3", email: "redsunhi08@gmail.com", prdName: "피톤치드 수면 탈취제", category: "생활/주방", score: 92, status: "최적", date: "2026-06-03 11:10" }
+    ];
+  });
+
+  // Desktop spacious layout toggle switcher (Defaults to true, can toggle on desktop browser size)
+  const [isDesktopLayout, setIsDesktopLayout] = useState(true);
   
   // Sidebar open state
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -207,7 +267,10 @@ export default function App() {
   };
 
   // Dashboard navigation sub-tabs
-  const [dashboardTab, setDashboardTab] = useState<"home" | "projects" | "templates" | "my">("home");
+  const [dashboardTab, setDashboardTab] = useState<"home" | "projects" | "templates" | "my" | "admin">("home");
+  const [adminActiveSubTab, setAdminActiveSubTab] = useState<"users" | "logs">("users");
+  const [adminUserSearch, setAdminUserSearch] = useState("");
+  const [adminLogSearch, setAdminLogSearch] = useState("");
   const [projectSearchQuery, setProjectSearchQuery] = useState("");
   const [templateCategoryFilter, setTemplateCategoryFilter] = useState("전체");
   const [projectCategoryFilter, setProjectCategoryFilter] = useState("전체");
@@ -473,6 +536,22 @@ export default function App() {
     setCurrentView("diagnosis-loading");
     setDiagnosisLoadingText("기존 상세페이지의 흐름과 요소를 확보하여 분석하고 있습니다...");
 
+    const logDiagResult = (score: number) => {
+      const diagStatus = score >= 90 ? "최적" : (score >= 70 ? "개선필요" : "취약");
+      const newLog = {
+        id: "diag_" + Date.now(),
+        email: user ? user.email : "guest@sellingpage.co.kr",
+        prdName: diagnosisPrdName || "임시 상품 상세 페이지",
+        category: diagnosisCategory,
+        score: score,
+        status: diagStatus,
+        date: new Date().toISOString().replace("T", " ").substring(0, 16)
+      };
+      const updatedHistory = [newLog, ...diagnosisHistory];
+      setDiagnosisHistory(updatedHistory);
+      localStorage.setItem("selling_page_diagnosis_history", JSON.stringify(updatedHistory));
+    };
+
     try {
       const response = await fetch("/api/diagnose-page", {
         method: "POST",
@@ -488,6 +567,7 @@ export default function App() {
       const data = await response.json();
       if (data.report) {
         setDiagnosisReport(data.report);
+        logDiagResult(data.report.score || 80);
         // Add a slight delay for better experience
         setTimeout(() => {
           setCurrentView("diagnosis-result");
@@ -527,6 +607,7 @@ export default function App() {
           ]
         };
         setDiagnosisReport(fallbackReport);
+        logDiagResult(75);
         setCurrentView("diagnosis-result");
       }, 1500);
     }
@@ -634,104 +715,697 @@ export default function App() {
   };
 
   return (
-    <div id="selling_page_app" className="flex justify-center items-start min-h-screen">
+    <div 
+      id="selling_page_app" 
+      className={`flex justify-center items-start min-h-screen bg-[#f3f4f8] transition-all duration-300 ${
+        isDesktopLayout && currentView === "intro" ? "md:p-0" : "md:p-6"
+      }`}
+    >
+      
+      {/* Dynamic Desktop Layout Switcher Toolbar (Only visible on Desktop Screens) */}
+      <div className="hidden md:flex fixed top-4 right-6 z-[99] bg-white/95 backdrop-blur-md border border-gray-200/90 p-1.5 rounded-2xl shadow-lg items-center gap-1.5 font-sans">
+        <span className="text-[10px] font-bold text-gray-500 pl-2.5 pr-1 select-none">화면 모드:</span>
+        <button
+          onClick={() => {
+            setIsDesktopLayout(false);
+            showToast("모바일 시뮬레이터 뷰로 전환완료!");
+          }}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            !isDesktopLayout 
+              ? "bg-[#7000bf] text-white shadow-sm" 
+              : "text-gray-600 hover:bg-gray-100"
+          }`}
+        >
+          <Smartphone className="w-3.5 h-3.5" />
+          <span>모바일 화면</span>
+        </button>
+        <button
+          onClick={() => {
+            setIsDesktopLayout(true);
+            showToast("데스크톱 와이드 에디터/대시보드로 전환완료!");
+          }}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            isDesktopLayout 
+              ? "bg-[#7000bf] text-white shadow-sm" 
+              : "text-gray-600 hover:bg-gray-100"
+          }`}
+        >
+          <Monitor className="w-3.5 h-3.5" />
+          <span>데스크톱 모드</span>
+        </button>
+      </div>
+
       {/* Wrapper to look like a premium app container on desktop, fluid on mobile */}
-      <div className="w-full max-w-md bg-white min-h-screen shadow-2xl relative flex flex-col border-x border-[#eee]">
+      <div 
+        className={`w-full bg-white relative flex flex-col transition-all duration-300 ${
+          isDesktopLayout 
+            ? (currentView === "intro" 
+                ? "max-w-md md:max-w-full md:min-h-screen md:rounded-none md:shadow-none md:border-none" 
+                : "max-w-md md:max-w-7xl md:min-h-[88vh] md:rounded-3xl md:shadow-2xl md:border md:border-gray-200/80 overflow-hidden")
+            : "max-w-md min-h-screen shadow-2xl border-x border-[#eee]"
+        }`}
+      >
         
         {/* VIEW 1: INTRO LANDING SCREEN */}
         {currentView === "intro" && (
-          <div className="flex flex-col min-h-screen px-6 py-8 justify-between bg-gradient-to-b from-[#f9f9ff] to-[#f3f0fc]">
-            {/* Header branding */}
-            <div className="flex items-center justify-between">
+          <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#f9f9ff] to-[#f3f0fc] w-full font-sans">
+            
+            {/* Global Header (Displays as premium wide bar on Desktop, default branding on Mobile) */}
+            <header className="w-full bg-white/80 backdrop-blur-md border-b border-[#f0f0f5] px-6 py-4 md:px-10 md:py-4 flex items-center justify-between sticky top-0 z-40">
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-display font-bold text-primary tracking-tight">팔리는페이지</h1>
-              </div>
-              <HelpCircle className="w-5 h-5 text-gray-400" />
-            </div>
-
-            {/* Simulated interactive phone preview mockup */}
-            <div className="my-auto py-6 flex flex-col items-center">
-              <div className="relative w-64 h-96 bg-[#1e1533] rounded-[32px] p-3 shadow-xl border-4 border-gray-800 overflow-hidden transform hover:scale-[1.03] transition-transform duration-300">
-                {/* Floating tags */}
-                <div className="absolute top-12 -left-3 bg-white text-primary text-xs font-bold py-1.5 px-3 rounded-lg shadow-md border border-[#eee]">
-                  ✨ AI 카피라이팅
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#5300b7] to-[#800cf2] flex items-center justify-center text-white shrink-0 shadow-md">
+                  <Sparkles className="w-4 h-4" />
                 </div>
-                <div className="absolute bottom-16 -right-3 bg-white text-primary text-xs font-bold py-1.5 px-3 rounded-lg shadow-md border border-[#eee]">
-                  🎯 판매 최적화 (CRO)
-                </div>
-
-                {/* Simulated detail page layout inside screen */}
-                <div className="w-full h-full bg-[#f9f9ff] rounded-[24px] p-3 flex flex-col justify-between border border-gray-100">
-                  <div className="h-2 w-12 bg-gray-300 rounded-full mx-auto mb-2" />
-                  
-                  {/* Headline wireframe */}
-                  <div className="space-y-1">
-                    <div className="h-4 w-5/6 bg-primary/20 rounded mx-auto" />
-                    <div className="h-4 w-2/3 bg-primary/25 rounded mx-auto" />
-                  </div>
-
-                  {/* Image wireframe */}
-                  <div className="w-full aspect-square bg-[#ebddff] rounded-xl flex items-center justify-center">
-                    <Sparkles className="w-8 h-8 text-primary opacity-60 animate-pulse" />
-                  </div>
-
-                  {/* Subtext wireframe */}
-                  <div className="space-y-1">
-                    <div className="h-2 w-11/12 bg-gray-200 rounded mx-auto" />
-                    <div className="h-2 w-4/5 bg-gray-200 rounded mx-auto" />
-                  </div>
-
-                  {/* Button wireframe */}
-                  <div className="w-full h-8 bg-primary rounded-lg flex items-center justify-center text-[10px] text-white font-bold">
-                    구매하기
-                  </div>
-                </div>
+                <h1 className="text-lg md:text-xl font-display font-black text-primary tracking-tight">팔리는페이지</h1>
+                <span className="hidden md:inline-block bg-primary/10 text-primary text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ml-1.5 leading-none">
+                  v2.8
+                </span>
               </div>
 
-              {/* Hook text */}
-              <div className="text-center mt-8 space-y-2">
-                <h2 className="text-xl font-display font-extrabold text-gray-900 leading-snug">
-                  상품 정보만 입력하세요.<br />
-                  <span className="text-primary">AI가 팔리는 상세페이지</span>를 만듭니다.
-                </h2>
-                <p className="text-sm text-gray-500 font-sans">
-                  스마트스토어, 쿠팡, 자사몰 판매자를 위한<br />
-                  1:1 AI 맞춤형 올인원 솔루션
-                </p>
-              </div>
-            </div>
-
-            {/* CTA Buttons */}
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white border border-[#eee] rounded-xl p-3 flex items-center gap-2.5 shadow-sm">
-                  <span className="material-symbols-outlined text-primary text-xl">bolt</span>
-                  <span className="text-xs font-bold text-gray-800">5분 즉시 완성</span>
-                </div>
-                <div className="bg-white border border-[#eee] rounded-xl p-3 flex items-center gap-2.5 shadow-sm">
-                  <span className="material-symbols-outlined text-[#10b981] text-xl">verified</span>
-                  <span className="text-xs font-bold text-gray-800">검증된 CRO 공식</span>
-                </div>
+              {/* Desktop Global Middle Navigation Menu */}
+              <div className="hidden md:flex items-center gap-8 text-xs font-bold text-gray-500">
+                <button onClick={() => showToast("CRO 기반의 AI 설계 특장점 섹션으로 자동 스크롤됩니다.")} className="hover:text-primary transition-colors cursor-pointer">서비스 특장점</button>
+                <button onClick={() => showToast("업계 최고 수준의 매출 검증 템플릿 영역으로 이동합니다.")} className="hover:text-primary transition-colors cursor-pointer">성공 공식</button>
+                <button onClick={() => {
+                  if (user) {
+                    setDashboardTab("my");
+                    setCurrentView("dashboard");
+                  } else {
+                    setCurrentView("login");
+                  }
+                }} className="hover:text-primary transition-colors cursor-pointer">AI 상세 자가진단</button>
+                {user && (
+                  <button onClick={() => {
+                    setDashboardTab("admin");
+                    setCurrentView("dashboard");
+                  }} className="hover:text-primary transition-colors cursor-pointer flex items-center gap-1">
+                    <Shield className="w-3.5 h-3.5 text-primary" />
+                    <span>관제 센터</span>
+                  </button>
+                )}
               </div>
 
-              <button 
-                id="btn_start"
-                onClick={() => setCurrentView("dashboard")}
-                className="w-full bg-primary hover:bg-[#410091] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all duration-300 active:scale-[98%]"
-              >
-                시작하기 <ArrowRight className="w-5 h-5" />
-              </button>
+              {/* Header Right Action Corner */}
+              <div className="flex items-center gap-3">
+                {user ? (
+                  <div className="flex items-center gap-3">
+                    <span className="hidden sm:inline-block text-xs text-gray-500 font-bold">
+                      <strong>{user.name}</strong> 사장님
+                    </span>
+                    <button
+                      onClick={() => {
+                        setCurrentView("dashboard");
+                        showToast("대시보드로 편리하게 이동했습니다!");
+                      }}
+                      className="bg-primary hover:bg-[#410091] text-white text-xs font-black px-4 py-2 rounded-xl shadow-xs hover:shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+                    >
+                      <span>대시보드</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => setCurrentView("login")} 
+                      className="text-xs font-extrabold text-[#5300b7] hover:bg-primary/5 px-4 py-2 rounded-xl transition-all cursor-pointer"
+                    >
+                      로그인
+                    </button>
+                    <button 
+                      onClick={() => setCurrentView("signup")} 
+                      className="hidden sm:inline-block bg-primary hover:bg-[#410091] text-white text-xs font-black px-4 py-2 rounded-xl shadow-xs hover:shadow-md transition-all cursor-pointer"
+                    >
+                      무료 체험 가입
+                    </button>
+                  </div>
+                )}
+                <HelpCircle className="w-5 h-5 text-gray-400 md:hidden" />
+              </div>
+            </header>
+
+            {/* Main Content Area */}
+            <div className={`flex-1 flex flex-col justify-between ${
+              isDesktopLayout 
+                ? "md:grid md:grid-cols-2 md:gap-14 md:items-start md:px-14 md:py-12 w-full max-w-7xl mx-auto" 
+                : "px-6 py-6"
+            }`}>
               
-              <div className="text-center text-xs text-gray-400">
-                이미 계정이 있으신가요? <span onClick={() => showToast("로그인 서비스 준비 중입니다!")} className="font-bold text-primary cursor-pointer hover:underline">로그인</span>
+              {/* Left Column (Core Messaging / Headlines & CTA) */}
+              <div className={`flex flex-col justify-center ${
+                isDesktopLayout ? "space-y-8 md:pt-6 text-left" : "space-y-6 pt-2 text-center"
+              }`}>
+                
+                {/* Visual Label Banner */}
+                <div className={`flex ${isDesktopLayout ? "justify-start" : "justify-center"}`}>
+                  <span className="inline-flex items-center gap-1 bg-primary/10 text-primary text-[10px] font-black px-3.5 py-1.5 rounded-full uppercase tracking-widest leading-none">
+                    <Sparkles className="w-3 h-3 animate-pulse" />
+                    <span>국내 최초 CRO기반 상세 카피 라이터</span>
+                  </span>
+                </div>
+
+                {/* Hook display typography */}
+                <div className="space-y-3.5">
+                  <h2 className="text-2xl md:text-3.5xl font-display font-extrabold text-gray-900 leading-snug md:leading-tight tracking-tight">
+                    상품 정보만 입력하세요.<br />
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[#800cf2]">AI가 팔리는 상세페이지</span>를 만듭니다.
+                  </h2>
+                  <p className="text-xs md:text-base text-gray-500 font-sans leading-relaxed md:max-w-md">
+                    스마트스토어, 쿠팡, 자사몰 판매자를 위해 이탈율을 철저히 분석하고 잠재고객의 가치를 일깨우는 1:1 맞춤형 구매전환율 최적화(CRO) 솔루션입니다.
+                  </p>
+                </div>
+
+                {/* USP Grid Cards */}
+                <div className="grid grid-cols-2 gap-3 max-w-md mx-auto md:mx-0">
+                  <div className="bg-white border border-[#f0f0f5] rounded-2xl p-3.5 flex items-center gap-3 shadow-xs hover:shadow-md transition-all">
+                    <div className="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center text-primary shrink-0">
+                      <span className="material-symbols-outlined text-lg font-bold">bolt</span>
+                    </div>
+                    <div className="text-left">
+                      <span className="text-[11px] font-black text-gray-800 block">5분 완성</span>
+                      <span className="text-[8px] text-gray-400 block">초고속 즉시 생성</span>
+                    </div>
+                  </div>
+                  <div className="bg-white border border-[#f0f0f5] rounded-2xl p-3.5 flex items-center gap-3 shadow-xs hover:shadow-md transition-all">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center text-[#10b981] shrink-0">
+                      <span className="material-symbols-outlined text-lg font-bold">verified</span>
+                    </div>
+                    <div className="text-left">
+                      <span className="text-[11px] font-black text-gray-800 block">검증된 공식</span>
+                      <span className="text-[8px] text-gray-400 block">매출 극대화 이탈방지</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Launch CTA buttons */}
+                <div className="space-y-3 max-w-md mx-auto md:mx-0 w-full">
+                  <button 
+                    id="btn_start"
+                    onClick={() => setCurrentView(user ? "dashboard" : "login")}
+                    className="w-full bg-primary hover:bg-[#410091] text-white font-extrabold py-4 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-xl hover:shadow-[0_10px_20px_rgba(83,0,183,0.25)] transition-all duration-300 active:scale-[98%] cursor-pointer"
+                  >
+                    <span>매출 폭발 상세페이지 만들기</span>
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
+                  
+                  <div className={`${isDesktopLayout ? "text-left pl-1" : "text-center"} text-xs text-gray-400`}>
+                    이미 계정이 가입되어 있으신가요?{" "}
+                    <span onClick={() => setCurrentView("login")} className="font-bold text-primary cursor-pointer hover:underline">
+                      지금 바로 로그인하기
+                    </span>
+                  </div>
+                </div>
+
               </div>
+
+              {/* Right Column (Phone interactive preview mockup aligned perfectly next to content) */}
+              <div className={`flex flex-col items-center justify-center py-6 md:py-0 shrink-0 ${
+                isDesktopLayout ? "md:pt-6" : ""
+              }`}>
+                <div className="relative w-64 h-96 md:w-72 md:h-[450px] bg-[#1d1236] rounded-[36px] p-3 shadow-2xl border-4 border-gray-800/90 overflow-hidden transform hover:scale-[1.03] hover:rotate-1 transition-all duration-300">
+                  {/* Speaker slot styling inside device notch */}
+                  <div className="absolute top-1.5 left-1/2 transform -translate-x-1/2 w-20 h-4 bg-gray-900 rounded-full z-20 flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 rounded-full bg-gray-800" />
+                  </div>
+
+                  {/* Floating tags with subtle animation */}
+                  <div className="absolute top-12 -left-3 bg-white text-primary text-[10px] md:text-xs font-black py-2 px-3 rounded-xl shadow-md border border-gray-100 z-10 animate-bounce" style={{ animationDuration: '3s' }}>
+                    ✨ AI 문구 생성
+                  </div>
+                  <div className="absolute bottom-20 -right-3 bg-white text-primary text-[10px] md:text-xs font-black py-2 px-3 rounded-xl shadow-md border border-gray-100 z-10 animate-bounce" style={{ animationDuration: '4s' }}>
+                    🎯 구매 최적화 (CRO)
+                  </div>
+
+                  {/* Simulated real-time detail page layout inside screen */}
+                  <div className="w-full h-full bg-[#f9f9ff] rounded-[28px] p-4 flex flex-col justify-between border border-gray-100/30 relative overflow-hidden">
+                    <div className="h-1.5 w-10 bg-gray-300 rounded-full mx-auto mb-3" />
+                    
+                    {/* Simulated Logo brand */}
+                    <div className="space-y-1">
+                      <div className="h-5 w-5 bg-primary/10 rounded-full mx-auto" />
+                      <div className="h-2 w-14 bg-gray-300 rounded-full mx-auto" />
+                    </div>
+
+                    {/* Headline wireframe */}
+                    <div className="space-y-1 mt-2">
+                      <div className="h-3 w-5/6 bg-[#7000bf]/20 rounded mx-auto" />
+                      <div className="h-3 w-2/3 bg-[#7000bf]/25 rounded mx-auto" />
+                    </div>
+
+                    {/* Image wireframe */}
+                    <div className="w-full h-2/5 bg-gradient-to-tr from-[#ebddff] to-[#f4ebff] rounded-2xl flex items-center justify-center my-3 shadow-xs">
+                      <Sparkles className="w-7 h-7 text-primary opacity-60 animate-pulse" />
+                    </div>
+
+                    {/* Subtext wireframe */}
+                    <div className="space-y-1.5">
+                      <div className="h-1.5 w-11/12 bg-gray-200 rounded mx-auto" />
+                      <div className="h-1.5 w-4/5 bg-gray-200 rounded mx-auto" />
+                    </div>
+
+                    {/* Button wireframe clickable feedback */}
+                    <div 
+                      onClick={() => {
+                        setCurrentView(user ? "dashboard" : "login");
+                        showToast("시연용 목업 모드입니다. 상세 제작 페이지로 안내해 드릴게요!");
+                      }}
+                      className="w-full h-10 bg-primary hover:bg-[#410091] rounded-xl flex items-center justify-center text-[10px] text-white font-extrabold mt-2 cursor-pointer shadow-sm active:scale-95 transition-transform"
+                    >
+                      무료 분석 체험하기 &gt;
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        )}
+
+        {/* VIEW 1.5: LOGIN SCREEN */}
+        {currentView === "login" && (
+          <div className="flex flex-col min-h-screen justify-center items-center bg-[#f9f9ff] md:bg-gradient-to-b md:from-[#f9f9ff] md:to-[#f3f0fc] p-6 font-sans w-full">
+            <div className="w-full max-w-sm bg-white rounded-3xl border border-gray-100 shadow-xl p-8 relative space-y-6">
+              
+              {/* Back to intro button */}
+              <button 
+                onClick={() => {
+                  setCurrentView("intro");
+                  setLoginPassword("");
+                }}
+                className="absolute top-6 left-6 text-gray-400 hover:text-gray-700 p-1.5 rounded-full hover:bg-gray-50 transition-colors cursor-pointer flex items-center justify-center"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </button>
+
+              <div className="text-center space-y-1 pt-4">
+                <span className="bg-primary/10 text-primary text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">AI 상세페이지 메이커</span>
+                <h2 className="text-xl font-display font-extrabold text-gray-900 tracking-tight mt-2">로그인</h2>
+                <p className="text-[11px] text-gray-400">계정에 로그인하고 판매전략을 이어서 관리하세요</p>
+              </div>
+
+              {/* Login fields */}
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!loginEmail.trim() || !loginEmail.includes("@")) {
+                    showToast("올바른 이메일 형식을 입력하세요.");
+                    return;
+                  }
+                  if (!loginPassword || loginPassword.length < 4) {
+                    showToast("비밀번호는 4자 이상 입력해야 합니다.");
+                    return;
+                  }
+                  
+                  // Login success
+                  const username = loginEmail.split("@")[0] || "김사장님";
+                  const authenticatedUser = { email: loginEmail, name: username };
+                  setUser(authenticatedUser);
+                  localStorage.setItem("selling_page_user", JSON.stringify(authenticatedUser));
+
+                  // Ensure user is in the list of all registered users
+                  if (!allUsers.some(u => u.email === loginEmail)) {
+                    const newUserObj = {
+                      email: loginEmail,
+                      name: username,
+                      date: new Date().toISOString().split("T")[0],
+                      role: loginEmail === "redsunhi08@gmail.com" ? "우수회원" : "일반회원",
+                      projectsCount: projects.length || 3
+                    };
+                    const updatedAllUsers = [newUserObj, ...allUsers];
+                    setAllUsers(updatedAllUsers);
+                    localStorage.setItem("selling_page_all_users", JSON.stringify(updatedAllUsers));
+                  }
+
+                  showToast(`반가워요, ${username} 사장님! 로그인되었습니다.`);
+                  setCurrentView("dashboard");
+                  setLoginPassword("");
+                }}
+                className="space-y-4 text-left"
+              >
+                {/* Email field */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 block pl-1">이메일 주소</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Mail className="w-4 h-4 text-gray-400" />
+                    </div>
+                    <input 
+                      type="email"
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                      placeholder="example@yourstore.com"
+                      className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-sans"
+                    />
+                  </div>
+                </div>
+
+                {/* Password field */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 block pl-1">비밀번호</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Lock className="w-4 h-4 text-gray-400" />
+                    </div>
+                    <input 
+                      type={showPassword ? "text" : "password"}
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      placeholder="비밀번호를 입력하세요"
+                      className="w-full pl-9 pr-9 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-sans"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Info Tip Banner */}
+                <div className="bg-purple-50 border border-purple-100 rounded-xl p-3 text-[10px] text-primary/80 font-sans leading-relaxed flex items-start gap-1.5 select-none">
+                  <span className="material-symbols-outlined text-[13px] shrink-0 mt-0.5">info</span>
+                  <span>
+                    <strong>데모 로그인 팁:</strong> 사용자 편의를 위해 사장님의 이메일(<strong>redsunhi08@gmail.com</strong>)이 입력되어 있습니다. 비밀번호(4자 이상)를 적어주시면 즉시 접속됩니다.
+                  </span>
+                </div>
+
+                {/* Form buttons */}
+                <button 
+                  type="submit"
+                  className="w-full bg-primary hover:bg-[#410091] text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg transition-all active:scale-[98%] cursor-pointer"
+                >
+                  로그인 <ArrowRight className="w-4 h-4" />
+                </button>
+              </form>
+
+              {/* Link to sign up */}
+              <div className="text-center text-[11px] text-gray-400 pt-2 border-t border-gray-100">
+                아직 계정이 없으신가요?{" "}
+                <button 
+                  onClick={() => {
+                    setCurrentView("signup");
+                    setLoginPassword("");
+                    setSignupPassword("");
+                  }}
+                  className="font-bold text-primary hover:underline cursor-pointer"
+                >
+                  무료 회원가입
+                </button>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* VIEW 1.6: SIGNUP SCREEN */}
+        {currentView === "signup" && (
+          <div className="flex flex-col min-h-screen justify-center items-center bg-[#f9f9ff] md:bg-gradient-to-b md:from-[#f9f9ff] md:to-[#f3f0fc] p-6 font-sans w-full">
+            <div className="w-full max-w-sm bg-white rounded-3xl border border-gray-100 shadow-xl p-8 relative space-y-6">
+              
+              {/* Back to login button */}
+              <button 
+                onClick={() => {
+                  setCurrentView("login");
+                  setSignupPassword("");
+                }}
+                className="absolute top-6 left-6 text-gray-400 hover:text-gray-700 p-1.5 rounded-full hover:bg-gray-50 transition-colors cursor-pointer flex items-center justify-center"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </button>
+
+              <div className="text-center space-y-1 pt-4">
+                <span className="bg-[#10b981]/10 text-[#10b981] text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">회원가입</span>
+                <h2 className="text-xl font-display font-extrabold text-[#111] tracking-tight mt-2">무료 계정 생성</h2>
+                <p className="text-[11px] text-gray-400">단 5초만에 가입하고 바로 AI 상세페이지를 빌드하세요</p>
+              </div>
+
+              {/* Signup form */}
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!signupName.trim()) {
+                    showToast("이름(상호명)을 입력해 주세요.");
+                    return;
+                  }
+                  if (!signupEmail.trim() || !signupEmail.includes("@")) {
+                    showToast("올바른 이메일 형식을 작성하세요.");
+                    return;
+                  }
+                  if (!signupPassword || signupPassword.length < 4) {
+                    showToast("비밀번호는 4자 이상 입력해 주세요.");
+                    return;
+                  }
+                  
+                  // Signup & Auto login success
+                  const authenticatedUser = { email: signupEmail, name: signupName };
+                  setUser(authenticatedUser);
+                  localStorage.setItem("selling_page_user", JSON.stringify(authenticatedUser));
+                  
+                  // Save user to the list of all registered users
+                  const newUserObj = {
+                    email: signupEmail,
+                    name: signupName,
+                    date: new Date().toISOString().split("T")[0],
+                    role: "일반회원",
+                    projectsCount: 1
+                  };
+                  const updatedAllUsers = [newUserObj, ...allUsers.filter(u => u.email !== signupEmail)];
+                  setAllUsers(updatedAllUsers);
+                  localStorage.setItem("selling_page_all_users", JSON.stringify(updatedAllUsers));
+
+                  showToast(`회원가입 완료! 반가워요, ${signupName} 사장님.`);
+                  setCurrentView("dashboard");
+                  setSignupPassword("");
+                }}
+                className="space-y-4 text-left"
+              >
+                {/* Name/Store field */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 block pl-1">이름 또는 스토어명</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <User className="w-4 h-4 text-gray-400" />
+                    </div>
+                    <input 
+                      type="text"
+                      value={signupName}
+                      onChange={(e) => setSignupName(e.target.value)}
+                      placeholder="김사장 (또는 상점명)"
+                      className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] transition-all font-sans"
+                    />
+                  </div>
+                </div>
+
+                {/* Email field */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 block pl-1">이메일 주소</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Mail className="w-4 h-4 text-gray-400" />
+                    </div>
+                    <input 
+                      type="email"
+                      value={signupEmail}
+                      onChange={(e) => setSignupEmail(e.target.value)}
+                      placeholder="yourstore@example.com"
+                      className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] transition-all font-sans"
+                    />
+                  </div>
+                </div>
+
+                {/* Password field */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 block pl-1">비밀번호 설정</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Lock className="w-4 h-4 text-gray-400" />
+                    </div>
+                    <input 
+                      type={showPassword ? "text" : "password"}
+                      value={signupPassword}
+                      onChange={(e) => setSignupPassword(e.target.value)}
+                      placeholder="4자 이상의 비밀번호 지정"
+                      className="w-full pl-9 pr-9 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] transition-all font-sans"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Submit button */}
+                <button 
+                  type="submit"
+                  className="w-full bg-[#10b981] hover:bg-[#0d9466] text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg transition-all active:scale-[98%] cursor-pointer"
+                >
+                  가입 및 즉시 시작 <Check className="w-4 h-4" />
+                </button>
+              </form>
+
+              {/* Link to login */}
+              <div className="text-center text-[11px] text-gray-400 pt-2 border-t border-gray-100">
+                이미 가입된 계정이 있으신가요?{" "}
+                <button 
+                  onClick={() => {
+                    setCurrentView("login");
+                    setSignupPassword("");
+                    setLoginPassword("");
+                  }}
+                  className="font-bold text-primary hover:underline cursor-pointer"
+                >
+                  로그인하기
+                </button>
+              </div>
+
             </div>
           </div>
         )}
 
         {/* VIEW 2: DASHBOARD SCREEN */}
         {currentView === "dashboard" && (
-          <div className="flex flex-col min-h-screen justify-between bg-[#f9f9ff] relative overflow-hidden">
+          <div className={`bg-[#f9f9ff] relative overflow-hidden flex w-full ${
+            isDesktopLayout ? "flex-col md:flex-row min-h-screen md:min-h-[85vh]" : "flex-col min-h-screen justify-between"
+          }`}>
+            
+            {/* Desktop Left Sidebar Panel (Always visible on widescreen when in Desktop Layout Mode) */}
+            {isDesktopLayout && (
+              <div className="hidden md:flex w-64 bg-white flex-col border-r border-gray-100 font-sans flex-shrink-0 h-full">
+                {/* Header profile area with premium gradient background */}
+                <div className="bg-gradient-to-br from-[#7000bf] to-[#5300b7] text-white p-5 pt-7 pb-6 relative">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center p-0.5 border border-white/30 shadow-inner">
+                      <User className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1">
+                        <span className="font-extrabold text-xs tracking-tight">{user ? user.name : "김사장님"}</span>
+                        <span className="bg-[#fad02c] text-[#7000bf] text-[8px] font-black px-1.5 py-0.5 rounded-full">우수회원</span>
+                      </div>
+                      <span className="text-[9px] text-white/75 mt-0.5 block truncate max-w-[130px]">{user ? user.email : "redsunhi08@gmail.com"}</span>
+                    </div>
+                  </div>
+
+                  {/* Small Quick Status */}
+                  <div className="mt-4 bg-white/10 border border-white/10 rounded-xl p-2.5 flex items-center justify-between text-[9px]">
+                    <span className="text-white/80">CRO 최적화 진단 상태</span>
+                    <span className="text-[#a4ffb6] font-extrabold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#3aff60] animate-pulse"></span>
+                      실시간 최상
+                    </span>
+                  </div>
+                </div>
+
+                {/* Navigation Menu Links */}
+                <div className="flex-grow overflow-y-auto py-5 px-3 space-y-5">
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-extrabold text-gray-400 opacity-80 uppercase tracking-widest pl-3 block mb-1">메인 네비게이션</span>
+                    
+                    {[
+                      { key: "home", label: "실시간 홈 대시보드", icon: <Sparkles className="w-4 h-4" />, desc: "AI 추천 전략 및 요약 정보" },
+                      { key: "projects", label: "프로젝트 보관함", icon: <FileText className="w-4 h-4" />, desc: "내가 생성한 상품 카피 목록" },
+                      { key: "templates", label: "매출 검증 템플릿", icon: <TrendingUp className="w-4 h-4" />, desc: "대표적인 성공 사례 모음" },
+                      { key: "my", label: "상세페이지 자가진단", icon: <CheckCircle2 className="w-4 h-4" />, desc: "필수 이탈 방지 체크리스트" },
+                      ...(user ? [{ key: "admin", label: "종합 관리자 데스크", icon: <Shield className="w-4 h-4" />, desc: "고객 및 생성 데이터 통계 확인" }] : [])
+                    ].map((item) => {
+                      const isActive = dashboardTab === item.key;
+                      return (
+                        <button
+                          key={item.key}
+                          onClick={() => {
+                            setDashboardTab(item.key as any);
+                            showToast(`"${item.label}"(으)로 이동했습니다!`);
+                          }}
+                          className={`w-full flex items-start gap-2.5 p-2.5 rounded-xl text-left transition-all cursor-pointer group ${
+                            isActive 
+                              ? "bg-primary/10 text-primary border border-primary/10" 
+                              : "hover:bg-gray-50 text-gray-700 hover:text-gray-900 border border-transparent"
+                          }`}
+                        >
+                          <div className={`p-1 rounded-lg transition-colors ${
+                            isActive ? "bg-[#7000bf] text-white" : "bg-gray-100 text-gray-500 group-hover:bg-gray-200"
+                          }`}>
+                            {item.icon}
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="text-xs font-bold font-sans">{item.label}</h4>
+                            <p className="text-[8px] text-gray-400 mt-0.5 truncate">{item.desc}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <span className="text-[9px] font-extrabold text-gray-400 opacity-80 uppercase tracking-widest pl-3 block mb-1">AI 원클릭 생산 팩토리</span>
+                    
+                    {/* 새 상세페이지 만들기 */}
+                    <button 
+                      onClick={() => {
+                        setName("프리미엄 스테인리스 텀블러");
+                        setCategory("생활/주방");
+                        setTargetCustomer("2030 직장인, 환경 보호에 관심 많은 분");
+                        setPainPoints(["얼음이 금방 녹아요", "가방에서 물이 새요"]);
+                        setUsPs(["24시간 보냉", "완전 밀봉", "친환경 소재"]);
+                        setCurrentView("form-step-1");
+                      }}
+                      className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-gray-50 text-gray-700 text-left border border-transparent hover:border-gray-100 transition-all cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-1 px-1.5 rounded-lg bg-purple-50 text-purple-600">
+                          <Plus className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="text-xs font-bold font-sans text-gray-800">새 상세페이지 제작</span>
+                      </div>
+                    </button>
+
+                    {/* AI 상세페이지 진단 */}
+                    <button 
+                      onClick={() => {
+                        setDiagnosisUrl("");
+                        setDiagnosisContent("");
+                        setDiagnosisPrdName("유기농 사과즙");
+                        setDiagnosisCategory("식품");
+                        setDiagnosisReport(null);
+                        setCurrentView("diagnosis-input");
+                      }}
+                      className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-gray-50 text-gray-700 text-left border border-transparent hover:border-gray-100 transition-all cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-1 px-1.5 rounded-lg bg-orange-50 text-orange-600">
+                          <BarChart2 className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="text-xs font-bold font-sans text-gray-800">AI 상세 실시간 진단</span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Footer region */}
+                <div className="p-4 border-t border-gray-100 bg-gray-50 text-[10px] text-gray-400 flex items-center justify-between mt-auto">
+                  <span>버전 v1.3.4 (최신버전)</span>
+                  <button 
+                    onClick={() => {
+                      setUser(null);
+                      localStorage.removeItem("selling_page_user");
+                      setCurrentView("intro");
+                      showToast("성공적으로 로그아웃 되었습니다.");
+                    }}
+                    className="text-red-500 hover:underline font-bold"
+                  >
+                    로그아웃
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Right Pane Wrap representing the central panel contents */}
+            <div className={`flex-grow flex-1 flex flex-col justify-between min-w-0 ${isDesktopLayout ? "md:max-h-[88vh] md:overflow-y-auto" : ""}`}>
             {/* Sidebar menu drawer */}
             <AnimatePresence>
               {isSidebarOpen && (
@@ -770,10 +1444,10 @@ export default function App() {
                         </div>
                         <div>
                           <div className="flex items-center gap-1.5">
-                            <span className="font-extrabold text-sm tracking-tight">김사장님</span>
+                            <span className="font-extrabold text-sm tracking-tight">{user ? user.name : "김사장님"}</span>
                             <span className="bg-[#fad02c] text-[#7000bf] text-[9px] font-black px-1.5 py-0.5 rounded-full">우수회원</span>
                           </div>
-                          <span className="text-[10px] text-white/75 mt-0.5 block truncate max-w-[150px]">redsunhi08@gmail.com</span>
+                          <span className="text-[10px] text-white/75 mt-0.5 block truncate max-w-[150px]">{user ? user.email : "redsunhi08@gmail.com"}</span>
                         </div>
                       </div>
 
@@ -796,7 +1470,8 @@ export default function App() {
                           { key: "home", label: "실시간 홈 대시보드", icon: <Sparkles className="w-4 h-4" />, desc: "AI 추천 전략 및 요약 정보" },
                           { key: "projects", label: "프로젝트 보관함", icon: <FileText className="w-4 h-4" />, desc: "내가 생성한 상품 카피 목록" },
                           { key: "templates", label: "매출 검증 템플릿", icon: <TrendingUp className="w-4 h-4" />, desc: "대표적인 성공 사례 모음" },
-                          { key: "my", label: "상세페이지 자가진단", icon: <CheckCircle2 className="w-4 h-4" />, desc: "필수 이탈 방지 체크리스트" }
+                          { key: "my", label: "상세페이지 자가진단", icon: <CheckCircle2 className="w-4 h-4" />, desc: "필수 이탈 방지 체크리스트" },
+                          ...(user ? [{ key: "admin", label: "종합 관리자 데스크", icon: <Shield className="w-4 h-4" />, desc: "고객 및 생성 데이터 통계 확인" }] : [])
                         ].map((item) => {
                           const isActive = dashboardTab === item.key;
                           return (
@@ -903,6 +1578,8 @@ export default function App() {
                       <button 
                         onClick={() => {
                           setIsSidebarOpen(false);
+                          setUser(null);
+                          localStorage.removeItem("selling_page_user");
                           setCurrentView("intro");
                           showToast("성공적으로 로그아웃 되었습니다.");
                         }}
@@ -937,6 +1614,7 @@ export default function App() {
                     {dashboardTab === "projects" && "프로젝트 보관함"}
                     {dashboardTab === "templates" && "매출 폭발 템플릿"}
                     {dashboardTab === "my" && "마이 상세진단"}
+                    {dashboardTab === "admin" && "종합 관리자 데스크"}
                   </span>
                   {dashboardTab === "home" && (
                     <span className="text-[9px] bg-gray-100 text-gray-500 font-bold px-1.5 py-0.5 rounded-lg opacity-80 group-hover:bg-[#7000bf] group-hover:text-white transition-all ml-1 shrink-0">
@@ -962,7 +1640,7 @@ export default function App() {
                   {/* Greetings */}
                   <div className="space-y-1">
                     <h2 className="text-2xl font-display font-extrabold text-gray-900 leading-tight">
-                      안녕하세요, 김사장님!<br />
+                      안녕하세요, {user ? user.name : "김사장님"}!<br />
                       오늘 어떤 상품을 팔아볼까요?
                     </h2>
                     <p className="text-sm text-gray-500 font-sans">AI가 당신의 브랜드 상품을 베스트셀러로 만들어드려요.</p>
@@ -1419,7 +2097,7 @@ export default function App() {
                       <User className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-extrabold text-[#111] font-display">김사장님 (우수 등급)</h4>
+                      <h4 className="text-sm font-extrabold text-[#111] font-display">{user ? user.name : "김사장님"} (우수 등급)</h4>
                       <p className="text-[11px] text-gray-400 mt-0.5 font-sans">내 상세페이지는 이탈을 사전에 방어하고 있습니다!</p>
                     </div>
                   </div>
@@ -1490,6 +2168,395 @@ export default function App() {
                 </div>
               )}
 
+              {/* TAB 5: ADMIN TAB */}
+              {dashboardTab === "admin" && (
+                <div className="space-y-6 font-sans">
+                  
+                  {/* Administrative Master Header Intro */}
+                  <div className="bg-gradient-to-br from-[#1e1b4b] to-[#4338ca] text-white p-5 rounded-3xl shadow-lg relative overflow-hidden">
+                    <div className="absolute right-0 bottom-0 opacity-10 shrink-0 pointer-events-none select-none">
+                      <Shield className="w-44 h-44 text-white" />
+                    </div>
+                    <div className="z-10 space-y-1.5 position-relative">
+                      <div className="flex items-center gap-1.5">
+                        <span className="bg-yellow-400 text-black text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">SYSTEM ADMIN</span>
+                        <span className="w-2 h-2 rounded-full bg-[#10b981] animate-ping" />
+                      </div>
+                      <h3 className="text-lg font-display font-extrabold tracking-tight">종합 관리자 통계 데스크</h3>
+                      <p className="text-[11px] text-indigo-100 opacity-90 leading-relaxed">
+                        실시간으로 가입한 사장님들의 가입 흐름과 상품 상세지 지표 진단 상세 기록을 관제합니다.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Summary Metric Bento Grid */}
+                  <div className="grid grid-cols-2 gap-3.5">
+                    <div className="bg-white p-4 border border-gray-100 rounded-2xl shadow-xs space-y-1">
+                      <div className="flex items-center justify-between text-gray-400">
+                        <span className="text-[10px] font-bold uppercase tracking-wider">누적 활성 회원</span>
+                        <User className="w-3.5 h-3.5 text-primary" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <span className="text-xl font-mono font-black text-gray-900">{allUsers.length}명</span>
+                        <span className="text-[8px] text-gray-400 block">데모 기본 계정 포함</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-4 border border-gray-100 rounded-2xl shadow-xs space-y-1">
+                      <div className="flex items-center justify-between text-gray-400">
+                        <span className="text-[10px] font-bold uppercase tracking-wider">총 생성 상세페이지</span>
+                        <FileText className="w-3.5 h-3.5 text-[#10b981]" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <span className="text-xl font-mono font-black text-gray-900">
+                          {projects.length + allUsers.reduce((sum, u) => sum + (u.projectsCount || 0), 0)}개
+                        </span>
+                        <span className="text-[8px] text-gray-400 block">회원 생성물 및 기본값 통합</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-4 border border-[#eee] rounded-2xl shadow-xs space-y-1">
+                      <div className="flex items-center justify-between text-gray-400">
+                        <span className="text-[10px] font-bold uppercase tracking-wider">누적 AI 진단 수행</span>
+                        <Activity className="w-3.5 h-3.5 text-purple-600" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <span className="text-xl font-mono font-black text-gray-900">{diagnosisHistory.length}회</span>
+                        <span className="text-[8px] text-indigo-500 block font-bold">진단율 100% 정상 작동</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-4 border border-[#eee] rounded-2xl shadow-xs space-y-1">
+                      <div className="flex items-center justify-between text-gray-400">
+                        <span className="text-[10px] font-bold uppercase tracking-wider">평균 컨설팅 점수</span>
+                        <span className="material-symbols-outlined text-sm text-yellow-500">star</span>
+                      </div>
+                      <div className="space-y-0.5">
+                        <span className="text-xl font-mono font-black text-gray-900">
+                          {Math.round(diagnosisHistory.reduce((acc, c) => acc + c.score, 0) / (diagnosisHistory.length || 1))}점
+                        </span>
+                        <span className="text-[8px] text-green-500 block font-bold">합격 안정권 (80점 이상)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Inner Page Tabs Header */}
+                  <div className="flex p-1 bg-gray-100 rounded-xl">
+                    <button
+                      onClick={() => setAdminActiveSubTab("users")}
+                      className={`flex-1 text-center py-2 text-xs font-bold rounded-lg cursor-pointer transition-all flex items-center justify-center gap-1.5 ${
+                        adminActiveSubTab === "users" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-900"
+                      }`}
+                    >
+                      <User className="w-3.5 h-3.5" />
+                      <span>회원 가입 명단 ({allUsers.length})</span>
+                    </button>
+                    <button
+                      onClick={() => setAdminActiveSubTab("logs")}
+                      className={`flex-1 text-center py-2 text-xs font-bold rounded-lg cursor-pointer transition-all flex items-center justify-center gap-1.5 ${
+                        adminActiveSubTab === "logs" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-900"
+                      }`}
+                    >
+                      <Activity className="w-3.5 h-3.5" />
+                      <span>CRO 정밀진단 로그 ({diagnosisHistory.length})</span>
+                    </button>
+                  </div>
+
+                  {/* SUB TAB 1: USER LIST */}
+                  {adminActiveSubTab === "users" && (
+                    <div className="space-y-4">
+                      
+                      {/* Search Bar */}
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Search className="w-4 h-4 text-gray-400" />
+                        </div>
+                        <input
+                          type="text"
+                          value={adminUserSearch}
+                          onChange={(e) => setAdminUserSearch(e.target.value)}
+                          placeholder="사장님 성함 또는 이메일로 검색..."
+                          className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary font-sans"
+                        />
+                        {adminUserSearch && (
+                          <button 
+                            onClick={() => setAdminUserSearch("")}
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Users Card List */}
+                      <div className="space-y-2.5">
+                        {allUsers
+                          .filter(u => 
+                            u.name.toLowerCase().includes(adminUserSearch.toLowerCase()) || 
+                            u.email.toLowerCase().includes(adminUserSearch.toLowerCase())
+                          )
+                          .map((u, index) => (
+                            <div key={index} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-xs space-y-3 relative hover:border-indigo-100 transition-all">
+                              <div className="flex items-start justify-between">
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-extrabold text-gray-900 font-display">{u.name}</span>
+                                    {/* Action role switcher button toggle */}
+                                    <button 
+                                      onClick={() => {
+                                        const newRole = u.role === "우수회원" ? "일반회원" : u.role === "일반회원" ? "마스터" : "우수회원";
+                                        const updated = allUsers.map(usr => usr.email === u.email ? { ...usr, role: newRole } : usr);
+                                        setAllUsers(updated);
+                                        localStorage.setItem("selling_page_all_users", JSON.stringify(updated));
+                                        showToast(`"${u.name}" 사장님의 등급이 [${newRole}] 등급으로 변경되었습니다.`);
+                                      }}
+                                      title="클릭하여 등급 전환"
+                                      className={`text-[9px] font-black px-2 py-0.5 rounded-md cursor-pointer transition-colors ${
+                                        u.role === "마스터" 
+                                          ? "bg-rose-50 border border-rose-100 text-rose-600 hover:bg-rose-100" 
+                                          : u.role === "우수회원" 
+                                            ? "bg-purple-100 border border-purple-200 text-primary hover:bg-purple-200"
+                                            : "bg-gray-100 border border-gray-200 text-gray-600 hover:bg-gray-200"
+                                      }`}
+                                    >
+                                      {u.role} ⇆
+                                    </button>
+                                  </div>
+                                  <p className="text-[10px] text-gray-400 font-mono">{u.email}</p>
+                                </div>
+
+                                {/* Custom Registered Users Delete action (Prevent deleting baseline account admin) */}
+                                {u.email !== "admin@sellingpage.co.kr" && u.email !== "redsunhi08@gmail.com" && (
+                                  <button
+                                    onClick={() => {
+                                      if (confirm(`진짜 "${u.name}" 사장님 계정을 폐쇄 및 제거하시겠습니까?`)) {
+                                        const updated = allUsers.filter(usr => usr.email !== u.email);
+                                        setAllUsers(updated);
+                                        localStorage.setItem("selling_page_all_users", JSON.stringify(updated));
+                                        showToast(`"${u.name}" 사장님 계정이 안전하게 정삭 삭제되었습니다.`);
+                                      }
+                                    }}
+                                    className="text-gray-300 hover:text-rose-500 p-1.5 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                    title="계정 삭제"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
+
+                              <div className="flex items-center justify-between pt-2.5 border-t border-gray-50 text-[10px] text-gray-500 font-sans">
+                                <div>
+                                  가입일: <span className="font-mono text-gray-900">{u.date}</span>
+                                </div>
+                                <div className="flex items-center gap-1 bg-indigo-50/50 text-indigo-700 px-2 py-0.5 rounded-md">
+                                  <span>상세 제작:</span> 
+                                  <span className="font-bold text-gray-900 font-mono">{u.projectsCount || 0}개</span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+
+                        {allUsers.filter(u => 
+                          u.name.toLowerCase().includes(adminUserSearch.toLowerCase()) || 
+                          u.email.toLowerCase().includes(adminUserSearch.toLowerCase())
+                        ).length === 0 && (
+                          <div className="text-center py-8 text-gray-400 bg-white rounded-2xl border border-gray-100">
+                            검색어와 마칭되는 사장님이 안 계십니다.
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Demo User generation utility */}
+                      <button 
+                        onClick={() => {
+                          const names = ["홍사장", "이대표", "최스토어", "블랙카우", "오가닉스타"];
+                          const emails = ["hong@naver.com", "lee_ceo@daum.net", "choi_store@gmail.com", "blackcow@kakao.com", "organic_star@outlook.com"];
+                          const randomIndex = Math.floor(Math.random() * names.length);
+                          
+                          const randomUser = {
+                            email: emails[randomIndex] || `gildong_${Date.now()}@test.com`,
+                            name: names[randomIndex] || "가상사장님",
+                            date: new Date().toISOString().split("T")[0],
+                            role: "일반회원",
+                            projectsCount: Math.floor(Math.random() * 5) + 1
+                          };
+
+                          if (allUsers.some(u => u.email === randomUser.email)) {
+                            showToast("이미 가입 기록이 존재하여 다른 데모를 한번 더 클릭해주세요!");
+                            return;
+                          }
+
+                          const updated = [randomUser, ...allUsers];
+                          setAllUsers(updated);
+                          localStorage.setItem("selling_page_all_users", JSON.stringify(updated));
+                          showToast(`관리자 도구로 가상의 가입자 [${randomUser.name}] 님을 한명 등록했습니다.`);
+                        }}
+                        className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-all cursor-pointer border border-dashed border-gray-300 text-center"
+                      >
+                         ➕ 테스트용 가상 회원 가입 데이터 추가 (기능 검증)
+                      </button>
+
+                    </div>
+                  )}
+
+                  {/* SUB TAB 2: DIAGNOSTIC LOGS */}
+                  {adminActiveSubTab === "logs" && (
+                    <div className="space-y-4 font-sans">
+                      
+                      {/* Search Bar */}
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Search className="w-4 h-4 text-gray-400" />
+                        </div>
+                        <input
+                          type="text"
+                          value={adminLogSearch}
+                          onChange={(e) => setAdminLogSearch(e.target.value)}
+                          placeholder="검색 (제품명, 계정 이메일 등)..."
+                          className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary font-sans"
+                        />
+                        {adminLogSearch && (
+                          <button 
+                            onClick={() => setAdminLogSearch("")}
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Actions toolbar */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-gray-400">실시간 유입 순위 정렬</span>
+                        <button
+                          onClick={() => {
+                            if (confirm("정말 모든 진단 로그 데이터를 초기화(리셋) 하시겠습니까?")) {
+                              localStorage.removeItem("selling_page_diagnosis_history");
+                              setDiagnosisHistory([
+                                { id: "diag_3", email: "redsunhi08@gmail.com", prdName: "피톤치드 수면 탈취제", category: "생활/주방", score: 92, status: "최적", date: "2026-06-03 11:10" }
+                              ]);
+                              showToast("의도적인 시뮬레이션을 위해 진단용 데이터 로그를 성공적으로 리셋 완료했습니다.");
+                            }
+                          }}
+                          className="text-[10px] text-rose-500 font-bold hover:underline cursor-pointer"
+                        >
+                          로그 전체 비우기 
+                        </button>
+                      </div>
+
+                      {/* Log cards */}
+                      <div className="space-y-2.5">
+                        {diagnosisHistory
+                          .filter(log => 
+                            log.prdName.toLowerCase().includes(adminLogSearch.toLowerCase()) || 
+                            log.email.toLowerCase().includes(adminLogSearch.toLowerCase()) ||
+                            log.category.toLowerCase().includes(adminLogSearch.toLowerCase())
+                          )
+                          .map((log) => (
+                            <div key={log.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-xs space-y-3 hover:border-purple-100 transition-all text-left">
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="bg-light-primary text-primary text-[9px] font-black px-2 py-0.5 rounded-md">
+                                      {log.category}
+                                    </span>
+                                    <span className="text-[10px] text-gray-400 font-sans block">{log.date}</span>
+                                  </div>
+                                  <h4 className="text-xs font-extrabold text-gray-900 mt-1 font-sans">{log.prdName}</h4>
+                                  <p className="text-[10px] text-gray-400 font-mono mt-0.5 select-none">{log.email}</p>
+                                </div>
+
+                                <div className="flex items-center gap-1.5 flex-shrink-0">
+                                  {/* Score indicator badge */}
+                                  <div className="text-right space-y-0.5">
+                                    <span className={`text-xs font-black px-2.5 py-1 rounded-full font-mono block ${
+                                      log.score >= 90 
+                                        ? "bg-emerald-50 text-emerald-600 border border-emerald-100" 
+                                        : log.score >= 70 
+                                          ? "bg-amber-50 text-amber-600 border border-amber-100" 
+                                          : "bg-rose-50 text-rose-600 border border-rose-100"
+                                    }`}>
+                                      {log.score}점
+                                    </span>
+                                    <span className="text-[8px] text-gray-400 block font-bold tracking-tight text-center">{log.status}</span>
+                                  </div>
+
+                                  <button
+                                    onClick={() => {
+                                      const updated = diagnosisHistory.filter(h => h.id !== log.id);
+                                      setDiagnosisHistory(updated);
+                                      localStorage.setItem("selling_page_diagnosis_history", JSON.stringify(updated));
+                                      showToast("해당 진단 가짜 로그를 목록에서 성공적으로 제외했습니다.");
+                                    }}
+                                    className="text-gray-300 hover:text-rose-500 p-1.5 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                    title="로그 영구 삭제"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+
+                        {diagnosisHistory.filter(log => 
+                          log.prdName.toLowerCase().includes(adminLogSearch.toLowerCase()) || 
+                          log.email.toLowerCase().includes(adminLogSearch.toLowerCase()) ||
+                          log.category.toLowerCase().includes(adminLogSearch.toLowerCase())
+                        ).length === 0 && (
+                          <div className="text-center py-8 text-gray-400 bg-white rounded-2xl border border-gray-100">
+                            검색 필터와 일치하는 진단 수행 로그가 비어있습니다.
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Interactive Add Simulated Log Button */}
+                      <button
+                        onClick={() => {
+                          const samplePrds = [
+                            { name: "초강력 하이라이트 휴대 보조배터리", cat: "디지털/가전", minScore: 52, maxScore: 82 },
+                            { name: "유기농 착즙 도라지 배즙", cat: "식품", minScore: 65, maxScore: 94 },
+                            { name: "저진동 저소음 헤어드라이어", cat: "디지털/가전", minScore: 78, maxScore: 98 },
+                            { name: "어깨 등 마사지 기계", cat: "생활/주방", minScore: 40, maxScore: 85 },
+                            { name: "친환경 생분해 수세미 세트", cat: "생활/주방", minScore: 82, maxScore: 98 }
+                          ];
+                          const randomPrdObj = samplePrds[Math.floor(Math.random() * samplePrds.length)] || samplePrds[0]!;
+                          const randomScore = Math.floor(Math.random() * (randomPrdObj.maxScore - randomPrdObj.minScore + 1)) + randomPrdObj.minScore;
+                          const calculatedStatus = randomScore >= 90 ? "최적" : randomScore >= 70 ? "개선필요" : "취약";
+                          
+                          const newMockLog = {
+                            id: "diag_mock_" + Date.now(),
+                            email: allUsers[Math.floor(Math.random() * allUsers.length)]?.email || "apple_farm@naver.com",
+                            prdName: randomPrdObj.name,
+                            category: randomPrdObj.cat,
+                            score: randomScore,
+                            status: calculatedStatus,
+                            date: new Date().toISOString().replace("T", " ").substring(0, 16)
+                          };
+
+                          const updated = [newMockLog, ...diagnosisHistory];
+                          setDiagnosisHistory(updated);
+                          localStorage.setItem("selling_page_diagnosis_history", JSON.stringify(updated));
+                          showToast(`"${randomPrdObj.name}" 상세페이지에 대한 가상 자가진단 수행 로그를 즉각 합성했습니다.`);
+                        }}
+                        className="w-full py-2.5 bg-[#f5f3ff] hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-xl text-xs font-bold transition-all cursor-pointer text-center"
+                      >
+                         ⚙️ 통계 검증용 시뮬레이션 진단 로그 즉시 생성 (CRO 시뮬레이터)
+                      </button>
+
+                    </div>
+                  )}
+
+                  {/* Informational Tip */}
+                  <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 text-[11px] text-gray-500 leading-relaxed font-sans max-w-sm mx-auto">
+                    <strong>💡 통합 관제 센터 운영 안내</strong>
+                    <p className="mt-1">
+                      이 페이지는 로그인한 파트너 사장님 전원에게 실시간 판매 전술 자가 진단 및 회원 정보 정렬 테스트를 편안하게 해볼 기회를 부여하도록 제작된 <strong>전체공개 관리 데스크</strong>입니다. 가상의 데이터를 주입하고 지표 흐름을 체감해 보십시오.
+                    </p>
+                  </div>
+
+                </div>
+              )}
+
             </main>
 
             {/* Sticky Bottom Navigation matching UI exactly */}
@@ -1527,12 +2594,24 @@ export default function App() {
               <button 
                 onClick={() => setDashboardTab("my")}
                 className={`flex flex-col items-center gap-1 focus:outline-none cursor-pointer transition-colors ${
-                  dashboardTab === "my" ? "text-primary" : "text-gray-400 hover:text-primary"
+                  dashboardTab === "my" ? "text-[#7000bf]" : "text-gray-400 hover:text-primary"
                 }`}
               >
                 <span className="material-symbols-outlined text-[23px]" style={dashboardTab === "my" ? { fontVariationSettings: "'FILL' 1" } : {}}>person</span>
                 <span className="text-[10px] font-bold">마이</span>
               </button>
+
+              {user && (
+                <button 
+                  onClick={() => setDashboardTab("admin")}
+                  className={`flex flex-col items-center gap-1 focus:outline-none cursor-pointer transition-colors ${
+                    dashboardTab === "admin" ? "text-[#7000bf]" : "text-gray-400 hover:text-primary"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[23px]" style={dashboardTab === "admin" ? { fontVariationSettings: "'FILL' 1" } : {}}>shield</span>
+                  <span className="text-[10px] font-bold">관리자</span>
+                </button>
+              )}
             </nav>
 
             {/* Floating Action Button */}
@@ -1543,6 +2622,7 @@ export default function App() {
               >
                 <Plus className="w-6 h-6" />
               </button>
+            </div>
             </div>
           </div>
         )}
