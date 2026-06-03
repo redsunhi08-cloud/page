@@ -1,0 +1,6 @@
+{
+  "name": "팔리는페이지",
+  "description": "AI가 상품 정보를 분석하여 고전환율의 상세페이지 기획안 및 카피라이팅을 자동으로 생성해주는 맞춤형 AI 솔루션",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
