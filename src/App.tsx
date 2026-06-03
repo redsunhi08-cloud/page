@@ -225,7 +225,19 @@ export default function App() {
     const saved = localStorage.getItem("selling_page_projects");
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          // Keep only valid projects matching types, filtering out any broken/old structure
+          return parsed.filter(p => 
+            p && 
+            typeof p === "object" && 
+            p.id && 
+            p.productInfo && 
+            p.generatedDetails && 
+            p.generatedDetails.mainHeadline &&
+            Array.isArray(p.generatedDetails.usps)
+          );
+        }
       } catch (e) {
         return INITIAL_PROJECTS;
       }
