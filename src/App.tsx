@@ -197,12 +197,44 @@ const INITIAL_PROJECTS: Project[] = [
   }
 ];
 
+// Safe Storage wrapper to prevent SecurityError/DOMException crashes on sandbox deployments (e.g., Netlify)
+const safeStorage = {
+  getItem: (key: string): string | null => {
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        return window.localStorage.getItem(key);
+      }
+    } catch (e) {
+      console.warn("Storage item fetch failed:", e);
+    }
+    return null;
+  },
+  setItem: (key: string, value: string): void => {
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.setItem(key, value);
+      }
+    } catch (e) {
+      console.warn("Storage item save failed:", e);
+    }
+  },
+  removeItem: (key: string): void => {
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.removeItem(key);
+      }
+    } catch (e) {
+      console.warn("Storage item delete failed:", e);
+    }
+  }
+};
+
 export default function App() {
   const [currentView, setCurrentView] = useState<"intro" | "dashboard" | "form-step-1" | "form-step-2" | "form-loading" | "result" | "diagnosis-input" | "diagnosis-loading" | "diagnosis-result" | "login" | "signup">("intro");
   
   // User authentication State
   const [user, setUser] = useState<{ email: string; name: string } | null>(() => {
-    const saved = localStorage.getItem("selling_page_user");
+    const saved = safeStorage.getItem("selling_page_user");
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -222,7 +254,7 @@ export default function App() {
 
   // All Users list state for Admin panel
   const [allUsers, setAllUsers] = useState<{ email: string; name: string; date: string; role: string; projectsCount: number }[]>(() => {
-    const saved = localStorage.getItem("selling_page_all_users");
+    const saved = safeStorage.getItem("selling_page_all_users");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -239,7 +271,7 @@ export default function App() {
 
   // Diagnostics history list state for Admin panel
   const [diagnosisHistory, setDiagnosisHistory] = useState<{ id: string; email: string; prdName: string; category: string; score: number; status: string; date: string }[]>(() => {
-    const saved = localStorage.getItem("selling_page_diagnosis_history");
+    const saved = safeStorage.getItem("selling_page_diagnosis_history");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -285,7 +317,7 @@ export default function App() {
 
   // Projects List State (loaded from localStorage or default initialized)
   const [projects, setProjects] = useState<Project[]>(() => {
-    const saved = localStorage.getItem("selling_page_projects");
+    const saved = safeStorage.getItem("selling_page_projects");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -354,7 +386,7 @@ export default function App() {
 
   // Sync projects to localStorage on change
   useEffect(() => {
-    localStorage.setItem("selling_page_projects", JSON.stringify(projects));
+    safeStorage.setItem("selling_page_projects", JSON.stringify(projects));
   }, [projects]);
 
   // Loading animation simulation loop when generating page
@@ -551,7 +583,7 @@ export default function App() {
       };
       const updatedHistory = [newLog, ...diagnosisHistory];
       setDiagnosisHistory(updatedHistory);
-      localStorage.setItem("selling_page_diagnosis_history", JSON.stringify(updatedHistory));
+      safeStorage.setItem("selling_page_diagnosis_history", JSON.stringify(updatedHistory));
     };
 
     try {
@@ -1017,7 +1049,7 @@ export default function App() {
                   const username = loginEmail.split("@")[0] || "김사장님";
                   const authenticatedUser = { email: loginEmail, name: username };
                   setUser(authenticatedUser);
-                  localStorage.setItem("selling_page_user", JSON.stringify(authenticatedUser));
+                  safeStorage.setItem("selling_page_user", JSON.stringify(authenticatedUser));
 
                   // Ensure user is in the list of all registered users
                   if (!allUsers.some(u => u.email === loginEmail)) {
@@ -1030,7 +1062,7 @@ export default function App() {
                     };
                     const updatedAllUsers = [newUserObj, ...allUsers];
                     setAllUsers(updatedAllUsers);
-                    localStorage.setItem("selling_page_all_users", JSON.stringify(updatedAllUsers));
+                    safeStorage.setItem("selling_page_all_users", JSON.stringify(updatedAllUsers));
                   }
 
                   showToast(`반가워요, ${username} 사장님! 로그인되었습니다.`);
@@ -1174,7 +1206,7 @@ export default function App() {
                   // Signup & Auto login success
                   const authenticatedUser = { email: signupEmail, name: signupName };
                   setUser(authenticatedUser);
-                  localStorage.setItem("selling_page_user", JSON.stringify(authenticatedUser));
+                  safeStorage.setItem("selling_page_user", JSON.stringify(authenticatedUser));
                   
                   // Save user to the list of all registered users
                   const newUserObj = {
@@ -1186,7 +1218,7 @@ export default function App() {
                   };
                   const updatedAllUsers = [newUserObj, ...allUsers.filter(u => u.email !== signupEmail)];
                   setAllUsers(updatedAllUsers);
-                  localStorage.setItem("selling_page_all_users", JSON.stringify(updatedAllUsers));
+                  safeStorage.setItem("selling_page_all_users", JSON.stringify(updatedAllUsers));
 
                   showToast(`회원가입 완료! 반가워요, ${signupName} 사장님.`);
                   setCurrentView("dashboard");
@@ -1355,7 +1387,7 @@ export default function App() {
                     <button 
                       onClick={() => {
                         setUser(null);
-                        localStorage.removeItem("selling_page_user");
+                        safeStorage.removeItem("selling_page_user");
                         setCurrentView("intro");
                         showToast("성공적으로 로그아웃 되었습니다.");
                       }}
@@ -1501,7 +1533,7 @@ export default function App() {
                     <button 
                       onClick={() => {
                         setUser(null);
-                        localStorage.removeItem("selling_page_user");
+                        safeStorage.removeItem("selling_page_user");
                         setCurrentView("intro");
                         showToast("성공적으로 로그아웃 되었습니다.");
                       }}
@@ -1697,7 +1729,7 @@ export default function App() {
                           onClick={() => {
                             setIsSidebarOpen(false);
                             setUser(null);
-                            localStorage.removeItem("selling_page_user");
+                            safeStorage.removeItem("selling_page_user");
                             setCurrentView("intro");
                             showToast("성공적으로 로그아웃 되었습니다.");
                           }}
@@ -2438,7 +2470,7 @@ export default function App() {
                                         const newRole = u.role === "우수회원" ? "일반회원" : u.role === "일반회원" ? "마스터" : "우수회원";
                                         const updated = allUsers.map(usr => usr.email === u.email ? { ...usr, role: newRole } : usr);
                                         setAllUsers(updated);
-                                        localStorage.setItem("selling_page_all_users", JSON.stringify(updated));
+                                        safeStorage.setItem("selling_page_all_users", JSON.stringify(updated));
                                         showToast(`"${u.name}" 사장님의 등급이 [${newRole}] 등급으로 변경되었습니다.`);
                                       }}
                                       title="클릭하여 등급 전환"
@@ -2463,7 +2495,7 @@ export default function App() {
                                       if (confirm(`진짜 "${u.name}" 사장님 계정을 폐쇄 및 제거하시겠습니까?`)) {
                                         const updated = allUsers.filter(usr => usr.email !== u.email);
                                         setAllUsers(updated);
-                                        localStorage.setItem("selling_page_all_users", JSON.stringify(updated));
+                                        safeStorage.setItem("selling_page_all_users", JSON.stringify(updated));
                                         showToast(`"${u.name}" 사장님 계정이 안전하게 정삭 삭제되었습니다.`);
                                       }
                                     }}
@@ -2519,7 +2551,7 @@ export default function App() {
 
                           const updated = [randomUser, ...allUsers];
                           setAllUsers(updated);
-                          localStorage.setItem("selling_page_all_users", JSON.stringify(updated));
+                          safeStorage.setItem("selling_page_all_users", JSON.stringify(updated));
                           showToast(`관리자 도구로 가상의 가입자 [${randomUser.name}] 님을 한명 등록했습니다.`);
                         }}
                         className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-all cursor-pointer border border-dashed border-gray-300 text-center"
@@ -2562,7 +2594,7 @@ export default function App() {
                         <button
                           onClick={() => {
                             if (confirm("정말 모든 진단 로그 데이터를 초기화(리셋) 하시겠습니까?")) {
-                              localStorage.removeItem("selling_page_diagnosis_history");
+                              safeStorage.removeItem("selling_page_diagnosis_history");
                               setDiagnosisHistory([
                                 { id: "diag_3", email: "redsunhi08@gmail.com", prdName: "피톤치드 수면 탈취제", category: "생활/주방", score: 92, status: "최적", date: "2026-06-03 11:10" }
                               ]);
@@ -2616,7 +2648,7 @@ export default function App() {
                                     onClick={() => {
                                       const updated = diagnosisHistory.filter(h => h.id !== log.id);
                                       setDiagnosisHistory(updated);
-                                      localStorage.setItem("selling_page_diagnosis_history", JSON.stringify(updated));
+                                      safeStorage.setItem("selling_page_diagnosis_history", JSON.stringify(updated));
                                       showToast("해당 진단 가짜 로그를 목록에서 성공적으로 제외했습니다.");
                                     }}
                                     className="text-gray-300 hover:text-rose-500 p-1.5 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
@@ -2666,7 +2698,7 @@ export default function App() {
 
                           const updated = [newMockLog, ...diagnosisHistory];
                           setDiagnosisHistory(updated);
-                          localStorage.setItem("selling_page_diagnosis_history", JSON.stringify(updated));
+                          safeStorage.setItem("selling_page_diagnosis_history", JSON.stringify(updated));
                           showToast(`"${randomPrdObj.name}" 상세페이지에 대한 가상 자가진단 수행 로그를 즉각 합성했습니다.`);
                         }}
                         className="w-full py-2.5 bg-[#f5f3ff] hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-xl text-xs font-bold transition-all cursor-pointer text-center"
