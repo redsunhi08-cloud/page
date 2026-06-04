@@ -470,6 +470,7 @@ export default function App() {
         };
         
         setActiveProject(newProj);
+        setProjects(prev => [newProj, ...prev]);
         setEditableHeadline(newProj.generatedDetails.mainHeadline);
         setEditableSubtitle(newProj.generatedDetails.subtitle);
         setEditableProblemQuestion(newProj.generatedDetails.problemQuestion);
@@ -517,6 +518,7 @@ export default function App() {
         };
         
         setActiveProject(newProj);
+        setProjects(prev => [newProj, ...prev]);
         setEditableHeadline(newProj.generatedDetails.mainHeadline);
         setEditableSubtitle(newProj.generatedDetails.subtitle);
         setEditableProblemQuestion(newProj.generatedDetails.problemQuestion);
@@ -718,7 +720,7 @@ export default function App() {
     <div 
       id="selling_page_app" 
       className={`flex justify-center items-start min-h-screen bg-[#f3f4f8] transition-all duration-300 ${
-        isDesktopLayout && currentView === "intro" ? "md:p-0" : "md:p-6"
+        isDesktopLayout ? "md:p-0" : "md:p-6"
       }`}
     >
       
@@ -757,12 +759,10 @@ export default function App() {
 
       {/* Wrapper to look like a premium app container on desktop, fluid on mobile */}
       <div 
-        className={`w-full bg-white relative flex flex-col transition-all duration-300 ${
+        className={`w-full bg-[#f9f9ff] relative flex flex-col transition-all duration-300 ${
           isDesktopLayout 
-            ? (currentView === "intro" 
-                ? "max-w-md md:max-w-full md:min-h-screen md:rounded-none md:shadow-none md:border-none" 
-                : "max-w-md md:max-w-7xl md:min-h-[88vh] md:rounded-3xl md:shadow-2xl md:border md:border-gray-200/80 overflow-hidden")
-            : "max-w-md min-h-screen shadow-2xl border-x border-[#eee]"
+            ? "max-w-md md:max-w-full md:min-h-screen md:rounded-none md:shadow-none md:border-none" 
+            : "max-w-md min-h-screen shadow-2xl border-x border-[#eee] bg-white"
         }`}
       >
         
@@ -782,28 +782,7 @@ export default function App() {
                 </span>
               </div>
 
-              {/* Desktop Global Middle Navigation Menu */}
-              <div className="hidden md:flex items-center gap-8 text-xs font-bold text-gray-500">
-                <button onClick={() => showToast("CRO 기반의 AI 설계 특장점 섹션으로 자동 스크롤됩니다.")} className="hover:text-primary transition-colors cursor-pointer">서비스 특장점</button>
-                <button onClick={() => showToast("업계 최고 수준의 매출 검증 템플릿 영역으로 이동합니다.")} className="hover:text-primary transition-colors cursor-pointer">성공 공식</button>
-                <button onClick={() => {
-                  if (user) {
-                    setDashboardTab("my");
-                    setCurrentView("dashboard");
-                  } else {
-                    setCurrentView("login");
-                  }
-                }} className="hover:text-primary transition-colors cursor-pointer">AI 상세 자가진단</button>
-                {user && (
-                  <button onClick={() => {
-                    setDashboardTab("admin");
-                    setCurrentView("dashboard");
-                  }} className="hover:text-primary transition-colors cursor-pointer flex items-center gap-1">
-                    <Shield className="w-3.5 h-3.5 text-primary" />
-                    <span>관제 센터</span>
-                  </button>
-                )}
-              </div>
+
 
               {/* Header Right Action Corner */}
               <div className="flex items-center gap-3">
@@ -900,7 +879,10 @@ export default function App() {
                 <div className="space-y-3 max-w-md mx-auto md:mx-0 w-full">
                   <button 
                     id="btn_start"
-                    onClick={() => setCurrentView(user ? "dashboard" : "login")}
+                    onClick={() => {
+                      setCurrentView("dashboard");
+                      showToast("체험 모드로 입장완료! 상세페이지 제작 및 실시간 자가진단을 자유롭게 이용해 보세요.");
+                    }}
                     className="w-full bg-primary hover:bg-[#410091] text-white font-extrabold py-4 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-xl hover:shadow-[0_10px_20px_rgba(83,0,183,0.25)] transition-all duration-300 active:scale-[98%] cursor-pointer"
                   >
                     <span>매출 폭발 상세페이지 만들기</span>
@@ -965,8 +947,8 @@ export default function App() {
                     {/* Button wireframe clickable feedback */}
                     <div 
                       onClick={() => {
-                        setCurrentView(user ? "dashboard" : "login");
-                        showToast("시연용 목업 모드입니다. 상세 제작 페이지로 안내해 드릴게요!");
+                        setCurrentView("dashboard");
+                        showToast("무료 체험 모드로 진단 및 제작 페이지로 편리하게 안내해 드립니다!");
                       }}
                       className="w-full h-10 bg-primary hover:bg-[#410091] rounded-xl flex items-center justify-center text-[10px] text-white font-extrabold mt-2 cursor-pointer shadow-sm active:scale-95 transition-transform"
                     >
@@ -983,8 +965,23 @@ export default function App() {
 
         {/* VIEW 1.5: LOGIN SCREEN */}
         {currentView === "login" && (
-          <div className="flex flex-col min-h-screen justify-center items-center bg-[#f9f9ff] md:bg-gradient-to-b md:from-[#f9f9ff] md:to-[#f3f0fc] p-6 font-sans w-full">
-            <div className="w-full max-w-sm bg-white rounded-3xl border border-gray-100 shadow-xl p-8 relative space-y-6">
+          <div className="flex flex-col min-h-screen bg-[#f9f9ff] font-sans w-full">
+            {isDesktopLayout && (
+              <header className="w-full bg-white border-b border-[#f0f0f5] px-8 py-4 flex items-center justify-between sticky top-0 z-40 bg-white/80 backdrop-blur-md">
+                <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentView("intro")}>
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#5300b7] to-[#800cf2] flex items-center justify-center text-white shrink-0 shadow-md">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <h1 className="text-lg md:text-xl font-display font-black text-primary tracking-tight">팔리는페이지</h1>
+                </div>
+                <button onClick={() => setCurrentView("intro")} className="text-xs font-bold text-gray-500 hover:text-primary flex items-center gap-1 cursor-pointer">
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>소개 화면으로 돌아가기</span>
+                </button>
+              </header>
+            )}
+            <div className="flex-grow flex justify-center items-center p-6 md:bg-gradient-to-b md:from-[#f9f9ff] md:to-[#f3f0fc] w-full">
+              <div className="w-full max-w-sm bg-white rounded-3xl border border-gray-100 shadow-xl p-8 relative space-y-6">
               
               {/* Back to intro button */}
               <button 
@@ -1117,12 +1114,28 @@ export default function App() {
 
             </div>
           </div>
+          </div>
         )}
 
         {/* VIEW 1.6: SIGNUP SCREEN */}
         {currentView === "signup" && (
-          <div className="flex flex-col min-h-screen justify-center items-center bg-[#f9f9ff] md:bg-gradient-to-b md:from-[#f9f9ff] md:to-[#f3f0fc] p-6 font-sans w-full">
-            <div className="w-full max-w-sm bg-white rounded-3xl border border-gray-100 shadow-xl p-8 relative space-y-6">
+          <div className="flex flex-col min-h-screen bg-[#f9f9ff] font-sans w-full">
+            {isDesktopLayout && (
+              <header className="w-full bg-white border-b border-[#f0f0f5] px-8 py-4 flex items-center justify-between sticky top-0 z-40 bg-white/80 backdrop-blur-md">
+                <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentView("intro")}>
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#5300b7] to-[#800cf2] flex items-center justify-center text-white shrink-0 shadow-md">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <h1 className="text-lg md:text-xl font-display font-black text-primary tracking-tight">팔리는페이지</h1>
+                </div>
+                <button onClick={() => setCurrentView("intro")} className="text-xs font-bold text-gray-500 hover:text-primary flex items-center gap-1 cursor-pointer">
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>소개 화면으로 돌아가기</span>
+                </button>
+              </header>
+            )}
+            <div className="flex-grow flex justify-center items-center p-6 md:bg-gradient-to-b md:from-[#f9f9ff] md:to-[#f3f0fc] w-full">
+              <div className="w-full max-w-sm bg-white rounded-3xl border border-gray-100 shadow-xl p-8 relative space-y-6">
               
               {/* Back to login button */}
               <button 
@@ -1265,17 +1278,112 @@ export default function App() {
 
             </div>
           </div>
+          </div>
         )}
 
         {/* VIEW 2: DASHBOARD SCREEN */}
         {currentView === "dashboard" && (
-          <div className={`bg-[#f9f9ff] relative overflow-hidden flex w-full ${
-            isDesktopLayout ? "flex-col md:flex-row min-h-screen md:min-h-[85vh]" : "flex-col min-h-screen justify-between"
-          }`}>
-            
-            {/* Desktop Left Sidebar Panel (Always visible on widescreen when in Desktop Layout Mode) */}
-            {isDesktopLayout && (
-              <div className="hidden md:flex w-64 bg-white flex-col border-r border-gray-100 font-sans flex-shrink-0 h-full">
+          <div className="flex flex-col min-h-screen bg-[#f9f9ff] relative overflow-hidden w-full">
+            {/* Widescreen Global Header for Dashboard when on Desktop Layout Mode */}
+            {isDesktopLayout ? (
+              <header className="w-full bg-white border-b border-[#f0f0f5] px-8 py-3.5 flex items-center justify-between sticky top-0 z-40 shadow-xs shrink-0 select-none font-sans">
+                {/* Brand Logo */}
+                <div 
+                  className="flex items-center gap-2 cursor-pointer" 
+                  onClick={() => setCurrentView("intro")}
+                >
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#5300b7] to-[#800cf2] flex items-center justify-center text-white shrink-0 shadow-md">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <h1 className="text-lg md:text-xl font-display font-black text-primary tracking-tight">팔리는페이지</h1>
+                  <span className="bg-primary/10 text-primary text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ml-1.5 leading-none">
+                    v2.8
+                  </span>
+                </div>
+
+                {/* Horizontal Desktop Menu Links */}
+                <div className="flex items-center gap-6 text-xs font-bold text-gray-500">
+                  {[
+                    { key: "home", label: "실시간 홈 대시보드" },
+                    { key: "projects", label: "프로젝트 보관함" },
+                    { key: "templates", label: "매출 검증 공식" },
+                    { key: "my", label: "AI 상세 자가진단" },
+                    ...(user ? [{ key: "admin", label: "종합 관제 센터" }] : [])
+                  ].map((tab) => {
+                    const isActive = dashboardTab === tab.key;
+                    return (
+                      <button
+                        key={tab.key}
+                        onClick={() => {
+                          setDashboardTab(tab.key as any);
+                          showToast(`"${tab.label}"(으)로 이동했습니다!`);
+                        }}
+                        className={`px-3.5 py-2 rounded-xl transition-all cursor-pointer font-extrabold ${
+                          isActive 
+                            ? "bg-primary/10 text-primary font-black scale-102 font-bold" 
+                            : "hover:text-primary hover:bg-gray-50 text-gray-400"
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Right Area Welcome & CTA */}
+                <div className="flex items-center gap-4">
+                  <span className="text-xs text-gray-400 font-bold hidden lg:inline-block">
+                    <strong className="text-gray-700">{user ? user.name : "김사장님"}</strong> 사장님
+                  </span>
+                  
+                  <button 
+                    onClick={() => {
+                      setName("프리미엄 스테인리스 텀블러");
+                      setCategory("생활/주방");
+                      setTargetCustomer("2030 직장인, 환경 보호에 관심 많은 분");
+                      setPainPoints(["얼음이 금방 녹아요", "가방에서 물이 새요"]);
+                      setUsPs(["24시간 보냉", "완전 밀봉", "친환경 소재"]);
+                      setCurrentView("form-step-1");
+                    }}
+                    className="bg-primary hover:bg-[#410091] text-white text-xs font-black px-4 py-2.5 rounded-xl shadow-xs hover:shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>새 상세페이지 제작</span>
+                  </button>
+
+                  {user ? (
+                    <button 
+                      onClick={() => {
+                        setUser(null);
+                        localStorage.removeItem("selling_page_user");
+                        setCurrentView("intro");
+                        showToast("성공적으로 로그아웃 되었습니다.");
+                      }}
+                      className="text-gray-400 hover:text-red-500 text-xs font-bold transition-all cursor-pointer hover:underline"
+                    >
+                      로그아웃
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => {
+                        setCurrentView("login");
+                      }}
+                      className="text-primary hover:underline text-xs font-bold transition-all cursor-pointer"
+                    >
+                      로그인/가입
+                    </button>
+                  )}
+                </div>
+              </header>
+            ) : null}
+
+            <div className={`bg-[#f9f9ff] relative overflow-hidden flex w-full flex-1 min-h-0 ${
+              isDesktopLayout ? "flex-col md:flex-row h-[calc(100vh-64px)]" : "flex-col min-h-screen justify-between"
+            }`}>
+              
+              {/* Desktop Left Sidebar Panel (Always visible on widescreen when in Desktop Layout Mode) */}
+              {isDesktopLayout && (
+                <div className="hidden md:flex w-64 bg-white flex-col border-r border-gray-100 font-sans flex-shrink-0 h-full">
                 {/* Header profile area with premium gradient background */}
                 <div className="bg-gradient-to-br from-[#7000bf] to-[#5300b7] text-white p-5 pt-7 pb-6 relative">
                   <div className="flex items-center gap-3">
@@ -1389,17 +1497,26 @@ export default function App() {
                 {/* Footer region */}
                 <div className="p-4 border-t border-gray-100 bg-gray-50 text-[10px] text-gray-400 flex items-center justify-between mt-auto">
                   <span>버전 v1.3.4 (최신버전)</span>
-                  <button 
-                    onClick={() => {
-                      setUser(null);
-                      localStorage.removeItem("selling_page_user");
-                      setCurrentView("intro");
-                      showToast("성공적으로 로그아웃 되었습니다.");
-                    }}
-                    className="text-red-500 hover:underline font-bold"
-                  >
-                    로그아웃
-                  </button>
+                  {user ? (
+                    <button 
+                      onClick={() => {
+                        setUser(null);
+                        localStorage.removeItem("selling_page_user");
+                        setCurrentView("intro");
+                        showToast("성공적으로 로그아웃 되었습니다.");
+                      }}
+                      className="text-red-500 hover:underline font-bold"
+                    >
+                      로그아웃
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => setCurrentView("login")}
+                      className="text-primary hover:underline font-bold"
+                    >
+                      로그인/가입
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -1575,18 +1692,30 @@ export default function App() {
                     {/* Footer region */}
                     <div className="p-4 border-t border-gray-100 bg-gray-50 text-[10px] text-gray-400 flex items-center justify-between">
                       <span>버전 v1.3.4 (안심 최신버전)</span>
-                      <button 
-                        onClick={() => {
-                          setIsSidebarOpen(false);
-                          setUser(null);
-                          localStorage.removeItem("selling_page_user");
-                          setCurrentView("intro");
-                          showToast("성공적으로 로그아웃 되었습니다.");
-                        }}
-                        className="text-red-500 hover:underline font-bold"
-                      >
-                        로그아웃
-                      </button>
+                      {user ? (
+                        <button 
+                          onClick={() => {
+                            setIsSidebarOpen(false);
+                            setUser(null);
+                            localStorage.removeItem("selling_page_user");
+                            setCurrentView("intro");
+                            showToast("성공적으로 로그아웃 되었습니다.");
+                          }}
+                          className="text-red-500 hover:underline font-bold"
+                        >
+                          로그아웃
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => {
+                            setIsSidebarOpen(false);
+                            setCurrentView("login");
+                          }}
+                          className="text-primary hover:underline font-bold"
+                        >
+                          로그인/가입
+                        </button>
+                      )}
                     </div>
                   </motion.div>
                 </>
@@ -1594,42 +1723,44 @@ export default function App() {
             </AnimatePresence>
 
             {/* Header bar */}
-            <header className="sticky top-0 bg-white border-b border-[#eee] h-16 px-5 flex items-center justify-between z-10 shadow-sm">
-              <div className="flex items-center gap-3">
-                <Menu onClick={() => setIsSidebarOpen(true)} className="w-6 h-6 text-primary cursor-pointer hover:scale-105 active:scale-95 transition-transform" />
-                <div 
-                  className="flex items-center gap-1.5 cursor-pointer group" 
-                  onClick={() => { 
-                    if (dashboardTab === "home") { 
-                      setCurrentView("intro"); 
-                      showToast("첫 화면(소개 페이지)으로 이동했습니다."); 
-                    } else { 
-                      setDashboardTab("home"); 
-                    } 
-                  }}
-                  title={dashboardTab === "home" ? "첫 화면으로 가기" : "홈 대시보드로 가기"}
-                >
-                  <span className="text-base font-display font-extrabold text-primary group-hover:opacity-85 transition-opacity">
-                    {dashboardTab === "home" && "팔리는페이지"}
-                    {dashboardTab === "projects" && "프로젝트 보관함"}
-                    {dashboardTab === "templates" && "매출 폭발 템플릿"}
-                    {dashboardTab === "my" && "마이 상세진단"}
-                    {dashboardTab === "admin" && "종합 관리자 데스크"}
-                  </span>
-                  {dashboardTab === "home" && (
-                    <span className="text-[9px] bg-gray-100 text-gray-500 font-bold px-1.5 py-0.5 rounded-lg opacity-80 group-hover:bg-[#7000bf] group-hover:text-white transition-all ml-1 shrink-0">
-                      첫화면가기
+            {!isDesktopLayout && (
+              <header className="sticky top-0 bg-white border-b border-[#eee] h-16 px-5 flex items-center justify-between z-10 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <Menu onClick={() => setIsSidebarOpen(true)} className="w-6 h-6 text-primary cursor-pointer hover:scale-105 active:scale-95 transition-transform" />
+                  <div 
+                    className="flex items-center gap-1.5 cursor-pointer group" 
+                    onClick={() => { 
+                      if (dashboardTab === "home") { 
+                        setCurrentView("intro"); 
+                        showToast("첫 화면(소개 페이지)으로 이동했습니다."); 
+                      } else { 
+                        setDashboardTab("home"); 
+                      } 
+                    }}
+                    title={dashboardTab === "home" ? "첫 화면으로 가기" : "홈 대시보드로 가기"}
+                  >
+                    <span className="text-base font-display font-extrabold text-primary group-hover:opacity-85 transition-opacity">
+                      {dashboardTab === "home" && "팔리는페이지"}
+                      {dashboardTab === "projects" && "프로젝트 보관함"}
+                      {dashboardTab === "templates" && "매출 폭발 템플릿"}
+                      {dashboardTab === "my" && "마이 상세진단"}
+                      {dashboardTab === "admin" && "종합 관리자 데스크"}
                     </span>
-                  )}
+                    {dashboardTab === "home" && (
+                      <span className="text-[9px] bg-gray-100 text-gray-500 font-bold px-1.5 py-0.5 rounded-lg opacity-80 group-hover:bg-[#7000bf] group-hover:text-white transition-all ml-1 shrink-0">
+                        첫화면가기
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div 
-                onClick={() => { setDashboardTab("my"); showToast("마이 상세페이지 탭으로 이동했습니다!"); }}
-                className="bg-[#ebddff] p-1.5 rounded-full cursor-pointer hover:opacity-85"
-              >
-                <User className="w-5 h-5 text-primary" />
-              </div>
-            </header>
+                <div 
+                  onClick={() => { setDashboardTab("my"); showToast("마이 상세페이지 탭으로 이동했습니다!"); }}
+                  className="bg-[#ebddff] p-1.5 rounded-full cursor-pointer hover:opacity-85"
+                >
+                  <User className="w-5 h-5 text-primary" />
+                </div>
+              </header>
+            )}
 
             {/* Dashboard contents based on sub-tab */}
             <main className="flex-1 px-5 py-6 space-y-6 overflow-y-auto hide-scrollbar pb-24">
@@ -2560,68 +2691,73 @@ export default function App() {
             </main>
 
             {/* Sticky Bottom Navigation matching UI exactly */}
-            <nav className="fixed bottom-0 max-w-md w-full bg-white border-t border-[#eee] min-h-16 px-4 flex items-center justify-around shadow-xl z-20">
-              <button 
-                onClick={() => setDashboardTab("home")}
-                className={`flex flex-col items-center gap-1 focus:outline-none cursor-pointer transition-colors ${
-                  dashboardTab === "home" ? "text-primary" : "text-gray-400 hover:text-primary"
-                }`}
-              >
-                <span className="material-symbols-outlined text-[23px]" style={dashboardTab === "home" ? { fontVariationSettings: "'FILL' 1" } : {}}>home</span>
-                <span className="text-[10px] font-bold">홈</span>
-              </button>
-              
-              <button 
-                onClick={() => setDashboardTab("projects")}
-                className={`flex flex-col items-center gap-1 focus:outline-none cursor-pointer transition-colors ${
-                  dashboardTab === "projects" ? "text-primary" : "text-gray-400 hover:text-primary"
-                }`}
-              >
-                <span className="material-symbols-outlined text-[23px]" style={dashboardTab === "projects" ? { fontVariationSettings: "'FILL' 1" } : {}}>folder_open</span>
-                <span className="text-[10px] font-bold">프로젝트</span>
-              </button>
+            {!isDesktopLayout && (
+              <>
+                <nav className="fixed bottom-0 max-w-md w-full bg-white border-t border-[#eee] min-h-16 px-4 flex items-center justify-around shadow-xl z-20">
+                  <button 
+                    onClick={() => setDashboardTab("home")}
+                    className={`flex flex-col items-center gap-1 focus:outline-none cursor-pointer transition-colors ${
+                      dashboardTab === "home" ? "text-primary" : "text-gray-400 hover:text-primary"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[23px]" style={dashboardTab === "home" ? { fontVariationSettings: "'FILL' 1" } : {}}>home</span>
+                    <span className="text-[10px] font-bold">홈</span>
+                  </button>
+                  
+                  <button 
+                    onClick={() => setDashboardTab("projects")}
+                    className={`flex flex-col items-center gap-1 focus:outline-none cursor-pointer transition-colors ${
+                      dashboardTab === "projects" ? "text-primary" : "text-gray-400 hover:text-primary"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[23px]" style={dashboardTab === "projects" ? { fontVariationSettings: "'FILL' 1" } : {}}>folder_open</span>
+                    <span className="text-[10px] font-bold">프로젝트</span>
+                  </button>
 
-              <button 
-                onClick={() => setDashboardTab("templates")}
-                className={`flex flex-col items-center gap-1 focus:outline-none cursor-pointer transition-colors ${
-                  dashboardTab === "templates" ? "text-primary" : "text-gray-400 hover:text-primary"
-                }`}
-              >
-                <span className="material-symbols-outlined text-[23px]" style={dashboardTab === "templates" ? { fontVariationSettings: "'FILL' 1" } : {}}>dashboard_customize</span>
-                <span className="text-[10px] font-bold">템플릿</span>
-              </button>
+                  <button 
+                    onClick={() => setDashboardTab("templates")}
+                    className={`flex flex-col items-center gap-1 focus:outline-none cursor-pointer transition-colors ${
+                      dashboardTab === "templates" ? "text-primary" : "text-gray-400 hover:text-primary"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[23px]" style={dashboardTab === "templates" ? { fontVariationSettings: "'FILL' 1" } : {}}>dashboard_customize</span>
+                    <span className="text-[10px] font-bold">템플릿</span>
+                  </button>
 
-              <button 
-                onClick={() => setDashboardTab("my")}
-                className={`flex flex-col items-center gap-1 focus:outline-none cursor-pointer transition-colors ${
-                  dashboardTab === "my" ? "text-[#7000bf]" : "text-gray-400 hover:text-primary"
-                }`}
-              >
-                <span className="material-symbols-outlined text-[23px]" style={dashboardTab === "my" ? { fontVariationSettings: "'FILL' 1" } : {}}>person</span>
-                <span className="text-[10px] font-bold">마이</span>
-              </button>
+                  <button 
+                    onClick={() => setDashboardTab("my")}
+                    className={`flex flex-col items-center gap-1 focus:outline-none cursor-pointer transition-colors ${
+                      dashboardTab === "my" ? "text-[#7000bf]" : "text-gray-400 hover:text-primary"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[23px]" style={dashboardTab === "my" ? { fontVariationSettings: "'FILL' 1" } : {}}>person</span>
+                    <span className="text-[10px] font-bold">마이</span>
+                  </button>
 
-              {user && (
-                <button 
-                  onClick={() => setDashboardTab("admin")}
-                  className={`flex flex-col items-center gap-1 focus:outline-none cursor-pointer transition-colors ${
-                    dashboardTab === "admin" ? "text-[#7000bf]" : "text-gray-400 hover:text-primary"
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[23px]" style={dashboardTab === "admin" ? { fontVariationSettings: "'FILL' 1" } : {}}>shield</span>
-                  <span className="text-[10px] font-bold">관리자</span>
-                </button>
-              )}
-            </nav>
+                  {user && (
+                    <button 
+                      onClick={() => setDashboardTab("admin")}
+                      className={`flex flex-col items-center gap-1 focus:outline-none cursor-pointer transition-colors ${
+                        dashboardTab === "admin" ? "text-[#7000bf]" : "text-gray-400 hover:text-primary"
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[23px]" style={dashboardTab === "admin" ? { fontVariationSettings: "'FILL' 1" } : {}}>shield</span>
+                      <span className="text-[10px] font-bold">관리자</span>
+                    </button>
+                  )}
+                </nav>
 
-            {/* Floating Action Button */}
-            <div className="fixed bottom-20 max-w-md w-full flex justify-end pr-5 z-10 pointer-events-none">
-              <button 
-                onClick={() => setCurrentView("form-step-1")}
-                className="bg-primary hover:bg-[#410091] text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform cursor-pointer pointer-events-auto"
-              >
-                <Plus className="w-6 h-6" />
-              </button>
+                {/* Floating Action Button */}
+                <div className="fixed bottom-20 max-w-md w-full flex justify-end pr-5 z-10 pointer-events-none">
+                  <button 
+                    onClick={() => setCurrentView("form-step-1")}
+                    className="bg-primary hover:bg-[#410091] text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform cursor-pointer pointer-events-auto"
+                  >
+                    <Plus className="w-6 h-6" />
+                  </button>
+                </div>
+              </>
+            )}
             </div>
             </div>
           </div>
@@ -2631,180 +2767,271 @@ export default function App() {
         
         {/* STEP 1: 상품 기본 정보 */}
         {currentView === "form-step-1" && (
-          <div className="flex flex-col min-h-screen justify-between bg-[#f9f9ff]">
-            {/* Header with back button */}
-            <header className="sticky top-0 bg-white border-b border-[#eee] h-16 px-4 flex items-center justify-between z-10 shadow-sm">
-              <button onClick={() => setCurrentView("dashboard")} className="p-1 hover:bg-gray-100 rounded-lg">
-                <ArrowLeft className="w-5 h-5 text-gray-700" />
-              </button>
-              <h2 className="text-base font-bold text-gray-900">상품 정보 입력</h2>
-              <button onClick={() => setCurrentView("dashboard")} className="p-1 hover:bg-gray-100 rounded-lg">
-                <X className="w-5 h-5 text-gray-700" />
-              </button>
-            </header>
+          <div className="flex flex-col min-h-screen bg-[#f9f9ff] font-sans w-full">
+            {isDesktopLayout ? (
+              /* Desktop Widescreen Stepper Header */
+              <header className="w-full bg-white border-b border-[#f0f0f5] px-8 py-4 flex items-center justify-between sticky top-0 z-40 shadow-xs shrink-0 select-none">
+                <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentView("dashboard")}>
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#5300b7] to-[#800cf2] flex items-center justify-center text-white shrink-0 shadow-md">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <h1 className="text-lg font-display font-black text-primary tracking-tight">팔리는페이지</h1>
+                </div>
 
-            {/* Stepper bar indicator layout matching second mockup screenshot */}
-            <div className="bg-white px-5 py-4 border-b border-[#eee] space-y-2">
-              <div className="flex items-center justify-between">
-                {/* Stage 1: Active */}
-                <div className="flex flex-col items-center text-center flex-1">
-                  <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center mb-1">1</div>
-                  <span className="text-[10px] font-bold text-primary">상품 기본 정보</span>
+                {/* Center progress stepper */}
+                <div className="flex items-center gap-8 text-xs font-bold font-sans">
+                  <div className="flex items-center gap-2 text-primary font-black">
+                    <span className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px]">1</span>
+                    <span>상세 상품 정보 입력</span>
+                  </div>
+                  <div className="h-[1px] w-8 bg-gray-300"></div>
+                  <div className="flex items-center gap-2 text-gray-400 font-bold">
+                    <span className="w-5 h-5 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-[10px]">2</span>
+                    <span>성공 소구포인트 전술화</span>
+                  </div>
+                  <div className="h-[1px] w-8 bg-gray-300"></div>
+                  <div className="flex items-center gap-2 text-gray-400 font-bold">
+                    <span className="w-5 h-5 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-[10px]">3</span>
+                    <span>상세페이지 자동 카피생성</span>
+                  </div>
                 </div>
-                <div className="h-[2px] bg-gray-200 flex-1 -mt-4" />
-                
-                {/* Stage 2 */}
-                <div className="flex flex-col items-center text-center flex-1">
-                  <div className="w-6 h-6 rounded-full bg-gray-200 text-gray-500 text-xs font-bold flex items-center justify-center mb-1">2</div>
-                  <span className="text-[10px] font-bold text-gray-400">상세 소구점</span>
-                </div>
-                <div className="h-[2px] bg-gray-200 flex-1 -mt-4" />
-                
-                {/* Stage 3 */}
-                <div className="flex flex-col items-center text-center flex-1">
-                  <div className="w-6 h-6 rounded-full bg-gray-200 text-gray-500 text-xs font-bold flex items-center justify-center mb-1">3</div>
-                  <span className="text-[10px] font-bold text-gray-400">생성 완료</span>
+
+                <button 
+                  onClick={() => setCurrentView("dashboard")} 
+                  className="text-xs text-gray-400 hover:text-gray-700 flex items-center gap-1.5 font-bold cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                  <span>대시보드로 나가기</span>
+                </button>
+              </header>
+            ) : (
+              /* Mobile Header */
+              <header className="sticky top-0 bg-white border-b border-[#eee] h-16 px-4 flex items-center justify-between z-10 shadow-sm">
+                <button onClick={() => setCurrentView("dashboard")} className="p-1 hover:bg-gray-100 rounded-lg">
+                  <ArrowLeft className="w-5 h-5 text-gray-700" />
+                </button>
+                <h2 className="text-base font-bold text-gray-900">상품 정보 입력</h2>
+                <button onClick={() => setCurrentView("dashboard")} className="p-1 hover:bg-gray-100 rounded-lg">
+                  <X className="w-5 h-5 text-gray-700" />
+                </button>
+              </header>
+            )}
+
+            {/* Stepper indicator inside layout (Mobile only) */}
+            {!isDesktopLayout && (
+              <div className="bg-white px-5 py-4 border-b border-[#eee] space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col items-center text-center flex-1">
+                    <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center mb-1">1</div>
+                    <span className="text-[10px] font-bold text-primary">상품 기본 정보</span>
+                  </div>
+                  <div className="h-[2px] bg-gray-200 flex-1 -mt-4" />
+                  <div className="flex flex-col items-center text-center flex-1">
+                    <div className="w-6 h-6 rounded-full bg-gray-200 text-gray-500 text-xs font-bold flex items-center justify-center mb-1">2</div>
+                    <span className="text-[10px] font-bold text-gray-400">상세 소구점</span>
+                  </div>
+                  <div className="h-[2px] bg-gray-200 flex-1 -mt-4" />
+                  <div className="flex flex-col items-center text-center flex-1">
+                    <div className="w-6 h-6 rounded-full bg-gray-200 text-gray-500 text-xs font-bold flex items-center justify-center mb-1">3</div>
+                    <span className="text-[10px] font-bold text-gray-400">생성 완료</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Fields input form container */}
-            <main className="flex-1 px-5 py-5 space-y-5 overflow-y-auto hide-scrollbar pb-24">
-              <div className="space-y-1">
-                <h3 className="text-base font-bold text-gray-800">판매하실 상품에 대해 알려주세요</h3>
-                <p className="text-xs text-gray-500 font-sans">AI가 효과적인 카피라이팅, 상세페이지 구성을 도와드립니다.</p>
-              </div>
-
-              {/* 1. Product Name */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-700 block">상품명</label>
-                <input 
-                  type="text" 
-                  value={name} 
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-[#f1f3f9] border border-[#e2e8f0] focus:border-primary focus:bg-white focus:outline-none p-3.5 rounded-xl text-sm transition-all"
-                  placeholder="예: 프리미엄 스테인리스 텀블러"
-                />
-              </div>
-
-              {/* 2. Category selection */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-700 block">카테고리</label>
-                <select 
-                  value={category} 
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full bg-[#f1f3f9] border border-[#e2e8f0] focus:border-primary focus:bg-white focus:outline-none p-3.5 rounded-xl text-sm transition-all appearance-none cursor-pointer"
-                >
-                  <option value="생활/주방">생활/주방</option>
-                  <option value="뷰티">뷰티 / 화장품</option>
-                  <option value="식품">식품 / 신선직송</option>
-                  <option value="의류/패션">의류 / 패션잡화</option>
-                  <option value="디지털/가전">디지털 / 소형가전</option>
-                </select>
-              </div>
-
-              {/* 3. Target Customer */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-700 block">타겟 고객</label>
-                <textarea 
-                  value={targetCustomer} 
-                  onChange={(e) => setTargetCustomer(e.target.value)}
-                  className="w-full bg-[#f1f3f9] border border-[#e2e8f0] focus:border-primary focus:bg-white focus:outline-none p-3.5 rounded-xl text-sm transition-all min-h-[70px] resize-none"
-                  placeholder="예: 2030 직장인, 환경 보호에 관심 많은 분"
-                />
-              </div>
-
-              {/* 4. Pain Points list */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-700 block">고객의 고민 (Pain Points)</label>
+            <main className="flex-1 overflow-y-auto hide-scrollbar pb-24 select-none">
+              <div className={`${isDesktopLayout ? "md:grid md:grid-cols-12 md:gap-8 md:items-start max-w-7xl mx-auto w-full px-8 py-8" : "px-5 py-5 space-y-5"}`}>
                 
-                {/* Dynamically created and removable elements */}
-                <div className="space-y-2 mb-2">
-                  {painPoints.map((point, idx) => (
-                    <div key={idx} className="flex items-center gap-2 bg-[#f1f3f9] border border-[#e2e8f0] px-3.5 py-2.5 rounded-xl text-sm">
-                      <span className="flex-grow text-gray-700">{point}</span>
+                {/* Left side Guide panel (Only on desktop) */}
+                {isDesktopLayout && (
+                  <div className="md:col-span-5 bg-gradient-to-br from-[#f1eaff] to-[#e6dfff] border border-primary/10 rounded-3xl p-8 space-y-6 shadow-sm sticky top-24">
+                    <div className="space-y-2">
+                      <span className="bg-primary/10 text-primary text-[10px] font-black px-3 py-1.5 rounded-full tracking-wide">CRO 전략 툴킷</span>
+                      <h3 className="text-xl font-display font-black text-gray-900 leading-tight">상품의 본질을 찾는 AI 빌더 가이드</h3>
+                      <p className="text-xs text-gray-500 leading-relaxed font-sans">
+                        잠재 고객을 베스트셀러의 팬으로 전환시키는 첫 관문입니다. AI가 최적의 문장력을 발휘하도록 정보를 구체적으로 기입해 보세요.
+                      </p>
+                    </div>
+
+                    <div className="space-y-4 pt-2 font-sans">
+                      <div className="flex gap-3 items-start">
+                        <div className="w-8 h-8 rounded-xl bg-white border border-primary/20 flex items-center justify-center text-primary font-bold shadow-xs shrink-0 text-sm">💡</div>
+                        <div>
+                          <h4 className="text-xs font-bold text-gray-800">명확한 타겟의 한 사람 정의</h4>
+                          <p className="text-[11px] text-gray-500 leading-relaxed font-sans mt-0.5">모두를 위한 메시지는 누구도 설득할 수 없습니다. 텀블러라면 '회사 정수기 물 뜨러 가기 귀찮은 직장인'처럼 사소한 불편을 짚어보세요.</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-3 items-start">
+                        <div className="w-8 h-8 rounded-xl bg-white border border-primary/20 flex items-center justify-center text-primary font-bold shadow-xs shrink-0 text-sm">🔥</div>
+                        <div>
+                          <h4 className="text-xs font-bold text-gray-800">고객 고통점(Pain Points) 체감</h4>
+                          <p className="text-[11px] text-gray-500 leading-relaxed font-sans mt-0.5">'얼음이 금방 녹는다', '가방 안에서 샌다' 같은 구어체 고민을 작성해줄 때 카피라이팅이 진가를 발휘합니다.</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-3 items-start">
+                        <div className="w-8 h-8 rounded-xl bg-white border border-primary/20 flex items-center justify-center text-primary font-bold shadow-xs shrink-0 text-sm">✨</div>
+                        <div>
+                          <h4 className="text-xs font-bold text-gray-800">대체 불가능한 독창성(USPs)</h4>
+                          <p className="text-[11px] text-gray-500 leading-relaxed font-sans mt-0.5">단순히 예쁜 것 외에 '특허 이중 차단 캡', '24시간 무부식 진공 단열' 등 강력한 신뢰 보증 지표를 추가하세요.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Right side form card */}
+                <div className={`${isDesktopLayout ? "md:col-span-7 bg-white border border-gray-200/80 p-8 rounded-3xl space-y-6 shadow-sm" : "space-y-5"}`}>
+                  
+                  {/* Title block inside Form for mobile or desktop inside wrap */}
+                  {!isDesktopLayout && (
+                    <div className="space-y-1">
+                      <h3 className="text-base font-bold text-gray-800">판매하실 상품에 대해 알려주세요</h3>
+                      <p className="text-xs text-gray-500 font-sans">AI가 효과적인 카피라이팅, 상세페이지 구성을 도와드립니다.</p>
+                    </div>
+                  )}
+
+                  {isDesktopLayout && (
+                    <div className="border-b border-gray-100 pb-4 mb-2">
+                      <h3 className="text-base font-extrabold text-[#111] font-display">의뢰 상품 명세 작성</h3>
+                      <p className="text-[11px] text-gray-400 mt-1">상세페이지의 기반이 되는 원형질 정보입니다.</p>
+                    </div>
+                  )}
+
+                  {/* 1. Product Name */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-700 block">상품명</label>
+                    <input 
+                      type="text" 
+                      value={name} 
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full bg-[#f1f3f9] border border-[#e2e8f0] focus:border-primary focus:bg-white focus:outline-none p-3.5 rounded-xl text-sm transition-all"
+                      placeholder="예: 프리미엄 스테인리스 텀블러"
+                    />
+                  </div>
+
+                  {/* 2. Category selection */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-700 block">카테고리</label>
+                    <select 
+                      value={category} 
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full bg-[#f1f3f9] border border-[#e2e8f0] focus:border-primary focus:bg-white focus:outline-none p-3.5 rounded-xl text-sm transition-all appearance-none cursor-pointer"
+                    >
+                      <option value="생활/주방">생활/주방</option>
+                      <option value="뷰티">뷰티 / 화장품</option>
+                      <option value="식품">식품 / 신선직송</option>
+                      <option value="의류/패션">의류 / 패션잡화</option>
+                      <option value="디지털/가전">디지털 / 소형가전</option>
+                    </select>
+                  </div>
+
+                  {/* 3. Target Customer */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-700 block">타겟 고객</label>
+                    <textarea 
+                      value={targetCustomer} 
+                      onChange={(e) => setTargetCustomer(e.target.value)}
+                      className="w-full bg-[#f1f3f9] border border-[#e2e8f0] focus:border-primary focus:bg-white focus:outline-none p-3.5 rounded-xl text-xs transition-all min-h-[70px] resize-none"
+                      placeholder="예: 2030 직장인, 환경 보호에 관심 많은 분"
+                    />
+                  </div>
+
+                  {/* 4. Pain Points list */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-700 block">고객의 고민 (Pain Points)</label>
+                    
+                    {/* Dynamically created and removable elements */}
+                    <div className="space-y-2 mb-2">
+                      {painPoints.map((point, idx) => (
+                        <div key={idx} className="flex items-center gap-2 bg-[#f1f3f9] border border-[#e2e8f0] px-3.5 py-2.5 rounded-xl text-sm">
+                          <span className="flex-grow text-gray-700">{point}</span>
+                          <button 
+                            onClick={() => handleRemovePainPoint(idx)}
+                            className="text-gray-400 hover:text-red-500 focus:outline-none cursor-pointer"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Adding element box */}
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        value={tempPainPoint}
+                        onChange={(e) => setTempPainPoint(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddPainPoint())}
+                        className="flex-grow bg-[#f1f3f9] border border-[#e2e8f0] focus:border-primary focus:bg-white focus:outline-none px-3.5 py-2.5 rounded-xl text-xs transition-all"
+                        placeholder="고민 요소를 직접 추가하세요"
+                      />
                       <button 
-                        onClick={() => handleRemovePainPoint(idx)}
-                        className="text-gray-400 hover:text-red-500 focus:outline-none"
+                        onClick={handleAddPainPoint}
+                        className="bg-primary text-white px-4 py-2.5 rounded-xl hover:bg-[#410091] cursor-pointer flex items-center justify-center font-bold text-xs"
                       >
-                        <X className="w-4 h-4" />
+                        추가
                       </button>
                     </div>
-                  ))}
-                </div>
+                  </div>
 
-                {/* Adding element box */}
-                <div className="flex gap-2">
-                  <input 
-                    type="text" 
-                    value={tempPainPoint}
-                    onChange={(e) => setTempPainPoint(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddPainPoint())}
-                    className="flex-grow bg-[#f1f3f9] border border-[#e2e8f0] focus:border-primary focus:bg-white focus:outline-none px-3.5 py-2.5 rounded-xl text-xs transition-all"
-                    placeholder="고민 요소를 직접 추가하세요"
-                  />
-                  <button 
-                    onClick={handleAddPainPoint}
-                    className="bg-primary text-white p-2.5 rounded-xl hover:bg-[#410091] cursor-pointer flex items-center justify-center font-bold text-xs"
-                  >
-                    추가
-                  </button>
-                </div>
-              </div>
-
-              {/* 5. USPs Tags list */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-700 block">핵심 장점 (USPs)</label>
-                
-                {/* Tag chips */}
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {usPs.map((usp, idx) => (
-                    <div key={idx} className="bg-primary/10 border border-primary/20 text-primary px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5">
-                      <span>{usp}</span>
-                      <span className="cursor-pointer font-black text-gray-400 hover:text-primary" onClick={() => handleRemoveUSP(idx)}>
-                        &times;
-                      </span>
+                  {/* 5. USPs Tags list */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-700 block">핵심 장점 (USPs)</label>
+                    
+                    {/* Tag chips */}
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {usPs.map((usp, idx) => (
+                        <div key={idx} className="bg-primary/10 border border-primary/20 text-primary px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5">
+                          <span>{usp}</span>
+                          <span className="cursor-pointer font-black text-gray-400 hover:text-primary" onClick={() => handleRemoveUSP(idx)}>
+                            &times;
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+
+                    {/* Add Tag Box */}
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        value={tempUSP}
+                        onChange={(e) => setTempUSP(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddUSP())}
+                        className="flex-grow bg-[#f1f3f9] border border-[#e2e8f0] focus:border-primary focus:bg-white focus:outline-none px-3.5 py-2.5 rounded-xl text-xs transition-all"
+                        placeholder="새로운 특장점 키워드 추가"
+                      />
+                      <button 
+                        onClick={handleAddUSP}
+                        className="bg-primary text-white px-4 py-2.5 rounded-xl hover:bg-[#410091] cursor-pointer flex items-center justify-center font-bold text-xs"
+                      >
+                        추가
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 6. AI Tip box */}
+                  <div className="bg-[#f0ebff] text-primary-container rounded-xl p-4 flex gap-3 border border-primary/15 shadow-2xs font-sans">
+                    <Sparkles className="w-5 h-5 flex-shrink-0 text-primary mt-0.5" />
+                    <div className="space-y-0.5">
+                      <span className="text-xs font-bold text-primary block">AI 팁</span>
+                      <p className="text-[11px] text-[#4a4455] leading-relaxed">
+                        고객의 고민을 구체적이고 구어체로 직접 적을수록 훨씬 더 구매 욕구를 자극하는 설득력 높은 카피 문안들과 특수 후킹 타이틀이 안전하게 생성됩니다.
+                      </p>
+                    </div>
+                  </div>
+
                 </div>
 
-                {/* Add Tag Box */}
-                <div className="flex gap-2">
-                  <input 
-                    type="text" 
-                    value={tempUSP}
-                    onChange={(e) => setTempUSP(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddUSP())}
-                    className="flex-grow bg-[#f1f3f9] border border-[#e2e8f0] focus:border-primary focus:bg-white focus:outline-none px-3.5 py-2.5 rounded-xl text-xs transition-all"
-                    placeholder="새로운 특장점 키워드 추가"
-                  />
-                  <button 
-                    onClick={handleAddUSP}
-                    className="bg-primary text-white p-2.5 rounded-xl hover:bg-[#410091] cursor-pointer flex items-center justify-center font-bold text-xs"
-                  >
-                    추가
-                  </button>
-                </div>
-              </div>
-
-              {/* 6. AI Tip box */}
-              <div className="bg-[#f0ebff] text-primary-container rounded-xl p-4 flex gap-3 border border-primary/15 shadow-2xs font-sans">
-                <Sparkles className="w-5 h-5 flex-shrink-0 text-primary mt-0.5" />
-                <div className="space-y-0.5">
-                  <span className="text-xs font-bold text-primary block">AI 팁</span>
-                  <p className="text-[11px] text-[#4a4455] leading-relaxed">
-                    고객의 고민을 구체적이고 구어체로 직접 적을수록 훨씬 더 구매 욕구를 자극하는 설득력 높은 카피 문안들과 특수 후킹 타이틀이 안전하게 생성됩니다.
-                  </p>
-                </div>
               </div>
             </main>
 
             {/* Form footer actions */}
-            <div className="sticky bottom-0 bg-white border-t border-[#eee] p-4">
+            <div className={`sticky bottom-0 bg-white border-t border-[#eee] p-4 ${isDesktopLayout ? "flex justify-end max-w-7xl mx-auto w-full px-8" : ""}`}>
               <button 
                 id="btn_next_step"
                 onClick={handleGenerateHooks}
-                className="w-full bg-primary hover:bg-[#410091] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-transform active:scale-[98%] cursor-pointer"
+                className={`bg-primary hover:bg-[#410091] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-transform active:scale-[98%] cursor-pointer ${isDesktopLayout ? "px-10" : "w-full"}`}
               >
                 다음 단계로 <ArrowRight className="w-4 h-4" />
               </button>
@@ -2814,93 +3041,181 @@ export default function App() {
 
         {/* STEP 2: 상세 소구점 (SELLING ANGLE) SELECTION */}
         {currentView === "form-step-2" && (
-          <div className="flex flex-col min-h-screen justify-between bg-[#f9f9ff]">
-            {/* Header */}
-            <header className="sticky top-0 bg-white border-b border-[#eee] h-16 px-4 flex items-center justify-between z-10 shadow-sm">
-              <button onClick={() => setCurrentView("form-step-1")} className="p-1 hover:bg-gray-100 rounded-lg">
-                <ArrowLeft className="w-5 h-5 text-gray-700" />
-              </button>
-              <h2 className="text-base font-bold text-gray-900 font-display">소구포인트 선택</h2>
-              <button onClick={() => setCurrentView("dashboard")} className="p-1 hover:bg-gray-100 rounded-lg">
-                <X className="w-5 h-5 text-gray-700" />
-              </button>
-            </header>
+          <div className="flex flex-col min-h-screen bg-[#f9f9ff] font-sans w-full">
+            {isDesktopLayout ? (
+              /* Desktop Widescreen Stepper Header */
+              <header className="w-full bg-white border-b border-[#f0f0f5] px-8 py-4 flex items-center justify-between sticky top-0 z-40 shadow-xs shrink-0 select-none">
+                <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentView("dashboard")}>
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#5300b7] to-[#800cf2] flex items-center justify-center text-white shrink-0 shadow-md">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <h1 className="text-lg font-display font-black text-primary tracking-tight">팔리는페이지</h1>
+                </div>
 
-            {/* Stepper bar (Stage 2 active) */}
-            <div className="bg-white px-5 py-4 border-b border-[#eee] space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex flex-col items-center text-center flex-1">
-                  <div className="w-6 h-6 rounded-full bg-[#f1f3ff] text-primary text-xs font-bold flex items-center justify-center mb-1">✓</div>
-                  <span className="text-[10px] font-bold text-gray-400">상품 기본 정보</span>
+                {/* Center progress stepper */}
+                <div className="flex items-center gap-8 text-xs font-bold font-sans">
+                  <div className="flex items-center gap-2 text-primary font-bold">
+                    <span className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px]">✓</span>
+                    <span>상세 상품 정보 입력</span>
+                  </div>
+                  <div className="h-[1px] w-8 bg-[#800cf2]"></div>
+                  <div className="flex items-center gap-2 text-[#800cf2] font-black font-bold">
+                    <span className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px]">2</span>
+                    <span>성공 소구포인트 전술화</span>
+                  </div>
+                  <div className="h-[1px] w-8 bg-gray-300"></div>
+                  <div className="flex items-center gap-2 text-gray-400 font-bold">
+                    <span className="w-5 h-5 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-[10px]">3</span>
+                    <span>상세페이지 자동 카피생성</span>
+                  </div>
                 </div>
-                <div className="h-[2px] bg-primary flex-1 -mt-4" />
-                
-                <div className="flex flex-col items-center text-center flex-1">
-                  <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center mb-1">2</div>
-                  <span className="text-[10px] font-bold text-primary">상세 소구점</span>
-                </div>
-                <div className="h-[2px] bg-gray-200 flex-1 -mt-4" />
-                
-                <div className="flex flex-col items-center text-center flex-1">
-                  <div className="w-6 h-6 rounded-full bg-gray-200 text-gray-500 text-xs font-bold flex items-center justify-center mb-1">3</div>
-                  <span className="text-[10px] font-bold text-gray-400">생성 완료</span>
+
+                <button 
+                  onClick={() => setCurrentView("dashboard")} 
+                  className="text-xs text-gray-400 hover:text-gray-700 flex items-center gap-1.5 font-bold cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                  <span>대시보드로 나가기</span>
+                </button>
+              </header>
+            ) : (
+              /* Mobile Header */
+              <header className="sticky top-0 bg-white border-b border-[#eee] h-16 px-4 flex items-center justify-between z-10 shadow-sm">
+                <button onClick={() => setCurrentView("form-step-1")} className="p-1 hover:bg-gray-100 rounded-lg">
+                  <ArrowLeft className="w-5 h-5 text-gray-700" />
+                </button>
+                <h2 className="text-base font-bold text-gray-900 font-display">소구포인트 선택</h2>
+                <button onClick={() => setCurrentView("dashboard")} className="p-1 hover:bg-gray-100 rounded-lg">
+                  <X className="w-5 h-5 text-gray-700" />
+                </button>
+              </header>
+            )}
+
+            {/* Stepper bar indicator (Mobile only) */}
+            {!isDesktopLayout && (
+              <div className="bg-white px-5 py-4 border-b border-[#eee] space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col items-center text-center flex-1">
+                    <div className="w-6 h-6 rounded-full bg-[#f1f3ff] text-primary text-xs font-bold flex items-center justify-center mb-1">✓</div>
+                    <span className="text-[10px] font-bold text-gray-400">상품 기본 정보</span>
+                  </div>
+                  <div className="h-[2px] bg-primary flex-1 -mt-4" />
+                  
+                  <div className="flex flex-col items-center text-center flex-1">
+                    <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center mb-1">2</div>
+                    <span className="text-[10px] font-bold text-primary">상세 소구점</span>
+                  </div>
+                  <div className="h-[2px] bg-gray-200 flex-1 -mt-4" />
+                  
+                  <div className="flex flex-col items-center text-center flex-1">
+                    <div className="w-6 h-6 rounded-full bg-gray-200 text-gray-500 text-xs font-bold flex items-center justify-center mb-1">3</div>
+                    <span className="text-[10px] font-bold text-gray-400">생성 완료</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Hook selector body */}
-            <main className="flex-1 px-5 py-5 space-y-5 overflow-y-auto hide-scrollbar pb-24">
-              <div className="space-y-1">
-                <h3 className="text-base font-bold text-gray-800">상세페이지 중심 축이 될 소구점을 정해주세요</h3>
-                <p className="text-xs text-gray-500 font-sans">고객 설득을 유도할 최고의 핵심 앵글을 선택하세요.</p>
-              </div>
+            <main className="flex-1 overflow-y-auto hide-scrollbar pb-24 select-none">
+              <div className={`${isDesktopLayout ? "md:grid md:grid-cols-12 md:gap-8 md:items-start max-w-7xl mx-auto w-full px-8 py-8" : "px-5 py-5 space-y-5"}`}>
+                
+                {/* Left side Guide panel (Only on desktop) */}
+                {isDesktopLayout && (
+                  <div className="md:col-span-5 bg-gradient-to-br from-[#ebf3ff] to-[#e4e9fe] border border-primary/10 rounded-3xl p-8 space-y-6 shadow-sm sticky top-24">
+                    <div className="space-y-2 font-sans">
+                      <span className="bg-primary/10 text-primary text-[10px] font-black px-3 py-1.5 rounded-full tracking-wide">CRO 심리학</span>
+                      <h3 className="text-xl font-display font-black text-gray-900 leading-tight">고객 지갑을 여는 핵심 앵글 설정</h3>
+                      <p className="text-xs text-gray-500 leading-relaxed font-sans mt-2">
+                        AI가 사장님이 제공해 주신 상품 가치 명세를 분석하여 최장점들을 도출했습니다. 이 중 가징 설득력 높은 스토리 라인 축을 선택하세요.
+                      </p>
+                    </div>
 
-              {isHooksLoading ? (
-                <div className="py-16 flex flex-col items-center justify-center space-y-4">
-                  <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-                  <span className="text-xs font-bold text-primary">AI가 최적화된 소구 앵글을 계산하고 있어요...</span>
-                </div>
-              ) : (
-                <div className="space-y-3.5">
-                  {generatedHooks.map((h, i) => (
-                    <div 
-                      key={i}
-                      onClick={() => setSelectedHookIndex(i)}
-                      className={`p-4 border-[2px] rounded-2xl cursor-pointer transition-all flex gap-3 relative ${
-                        selectedHookIndex === i 
-                          ? "border-primary bg-primary/5 shadow-md" 
-                          : "border-[#e2e8f0] bg-white text-gray-800 hover:border-gray-300"
-                      }`}
-                    >
-                      {/* Check icon top-right if active */}
-                      {selectedHookIndex === i && (
-                        <div className="absolute top-3.5 right-3.5 bg-primary text-white rounded-full p-0.5">
-                          <Check className="w-4 h-4" />
+                    <div className="space-y-4 pt-2 font-sans">
+                      <div className="flex gap-3 items-start">
+                        <div className="w-8 h-8 rounded-xl bg-white border border-primary/20 flex items-center justify-center text-primary font-bold shadow-xs shrink-0 text-sm">🧠</div>
+                        <div>
+                          <h4 className="text-xs font-bold text-gray-800">이탈을 막는 3초 후킹 공식</h4>
+                          <p className="text-[11px] text-gray-500 leading-relaxed font-sans mt-0.5">상세페이지 최상단 헤드라인은 이 상품이 나에게 주는 즉각적인 이익(Benefit)을 단방에 선사해야 이탈이 일어나지 않습니다.</p>
                         </div>
-                      )}
-
-                      <div className="flex-1 space-y-2">
-                        <div className="inline-block bg-primary-container text-white text-[10px] font-bold py-1 px-2 rounded-md">
-                          후킹 앵글 {i + 1} ({h.sellingPoint})
+                      </div>
+                      <div className="flex gap-3 items-start">
+                        <div className="w-8 h-8 rounded-xl bg-white border border-primary/20 flex items-center justify-center text-primary font-bold shadow-xs shrink-0 text-sm">🎯</div>
+                        <div>
+                          <h4 className="text-xs font-bold text-gray-800">소구 축 결정의 중요성</h4>
+                          <p className="text-[11px] text-gray-500 leading-relaxed font-sans mt-0.5">선택한 후킹 앵글을 골격 삼아 전체 설득 논리 단계(문제 제기 {"->"} 대안 제시 {"->"} 효능 입증 {"->"} 혜택 트리거)가 세워집니다.</p>
                         </div>
-                        <h4 className="font-extrabold text-[15px] leading-snug text-gray-900 pr-5">
-                          {h.title}
-                        </h4>
-                        <p className="text-xs text-gray-600 leading-relaxed font-sans">{h.description}</p>
                       </div>
                     </div>
-                  ))}
+                  </div>
+                )}
+
+                {/* Right side hook selection cards container */}
+                <div className={`${isDesktopLayout ? "md:col-span-7 bg-white border border-gray-200/80 p-8 rounded-3xl space-y-6 shadow-sm" : "space-y-5"}`}>
+                  
+                  {!isDesktopLayout && (
+                    <div className="space-y-1">
+                      <h3 className="text-base font-bold text-gray-800">상세페이지 중심 축이 될 소구점을 정해주세요</h3>
+                      <p className="text-xs text-gray-500 font-sans">고객 설득을 유도할 최고의 핵심 앵글을 선택하세요.</p>
+                    </div>
+                  )}
+
+                  {isDesktopLayout && (
+                    <div className="border-b border-gray-100 pb-4 mb-2">
+                      <h3 className="text-base font-extrabold text-[#111] font-display">추천 소구 전술 슬롯</h3>
+                      <p className="text-[11px] text-gray-400 mt-1">원하시는 셀링 플롯 궤적 중 단 하나를 활성화하십시오.</p>
+                    </div>
+                  )}
+
+                  {isHooksLoading ? (
+                    <div className="py-16 flex flex-col items-center justify-center space-y-4 font-sans">
+                      <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-xs font-bold text-primary">AI가 최적화된 소구 앵글을 계산하고 있어요...</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-3.5">
+                      {generatedHooks.map((h, i) => (
+                        <div 
+                          key={i}
+                          onClick={() => setSelectedHookIndex(i)}
+                          className={`p-4 border-[2px] rounded-2xl cursor-pointer transition-all flex gap-3 relative ${
+                            selectedHookIndex === i 
+                              ? "border-primary bg-primary/5 shadow-md" 
+                              : "border-[#e2e8f0] bg-white text-gray-800 hover:border-gray-300"
+                          }`}
+                        >
+                          {/* Check icon top-right if active */}
+                          {selectedHookIndex === i && (
+                            <div className="absolute top-3.5 right-3.5 bg-primary text-white rounded-full p-0.5">
+                              <Check className="w-4 h-4" />
+                            </div>
+                          )}
+
+                          <div className="flex-1 space-y-2">
+                            <div className="inline-block bg-primary-container text-white text-[10px] font-bold py-1 px-2 rounded-md">
+                              후킹 앵글 {i + 1} ({h.sellingPoint})
+                            </div>
+                            <h4 className="font-extrabold text-[15px] leading-snug text-gray-900 pr-5 font-display">
+                              {h.title}
+                            </h4>
+                            <p className="text-xs text-gray-600 leading-relaxed font-sans">{h.description}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                 </div>
-              )}
+
+              </div>
             </main>
 
             {/* Stepper Footer actions */}
-            <div className="sticky bottom-0 bg-white border-t border-[#eee] p-4">
+            <div className={`sticky bottom-0 bg-white border-t border-[#eee] p-4 ${isDesktopLayout ? "flex justify-end max-w-7xl mx-auto w-full px-8" : ""}`}>
               <button 
                 id="btn_complete_generation"
                 disabled={isHooksLoading || generatedHooks.length === 0}
                 onClick={handleGeneratePage}
-                className="w-full bg-primary hover:bg-[#410091] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg disabled:opacity-50 cursor-pointer"
+                className={`bg-primary hover:bg-[#410091] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg disabled:opacity-50 cursor-pointer ${isDesktopLayout ? "px-10" : "w-full"}`}
               >
                 상세페이지 자동 생성하기 <Sparkles className="w-4 h-4" />
               </button>
@@ -2940,368 +3255,799 @@ export default function App() {
 
         {/* VIEW 4: GENERATED RESULTS (LATEST MOCKUP PREVIEW) */}
         {currentView === "result" && activeProject && (
-          <div className="flex flex-col min-h-screen bg-[#f9f9ff]">
-            {/* Header layout matching top of screen 1 mockup */}
-            <header className="sticky top-0 bg-white border-b border-[#eee] px-4 py-3 z-30 shadow-sm flex items-center justify-between">
-              <button 
-                onClick={() => setCurrentView("dashboard")} 
-                className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500"
-                title="대시보드로 가기"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              
-              {/* Title bar of mockup */}
-              <span className="font-display font-black text-primary text-base">AI 생성 결과</span>
-
-              <div className="bg-[#ebddff] p-1 rounded-full cursor-pointer hover:opacity-85">
-                <User className="w-5 h-5 text-primary" />
-              </div>
-            </header>
-
-            {/* Quick Actions layout mirroring Preview / Edit / Save header tab from mockup */}
-            <div className="bg-white border-b border-[#eee] py-3.5 px-4 sticky top-[53px] z-20 shadow-xs flex items-center justify-center">
-              <div className="flex items-center gap-2 bg-[#f1f3ff] p-1.5 rounded-2xl w-full max-w-sm justify-between">
-                
-                {/* 1. Preview btn */}
-                <button 
-                  onClick={() => setIsEditingMode(false)}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                    !isEditingMode 
-                      ? "bg-white text-primary shadow-sm" 
-                      : "text-gray-500 hover:text-primary"
-                  }`}
-                >
-                  <Eye className="w-4 h-4" />
-                  <span>미리보기</span>
-                </button>
-
-                {/* 2. Edit with live inputs */}
-                <button 
-                  onClick={() => setIsEditingMode(true)}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                    isEditingMode 
-                      ? "bg-white text-primary shadow-sm" 
-                      : "text-gray-500 hover:text-primary"
-                  }`}
-                >
-                  <Edit3 className="w-4 h-4" />
-                  <span>편집하기</span>
-                </button>
-
-                {/* 3. Save edits and persist */}
-                <button 
-                  onClick={handleSaveEdits}
-                  className="bg-primary text-white flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:opacity-90 active:scale-95 transition-all"
-                >
-                  <Save className="w-4 h-4" />
-                  <span>저장하기</span>
-                </button>
-
-              </div>
-            </div>
-
-            {/* Results scroll view */}
-            <main id="result_page_preview" className="flex-1 overflow-y-auto hide-scrollbar pb-24 space-y-6">
-              
-              {/* Card wrapper representing the generated details catalog template */}
-              <div className="mx-4 mt-5 p-5 bg-white border border-[#e2e8f0] rounded-2xl shadow-sm space-y-5">
-                
-                {/* Floating header tag */}
-                <div className="text-center">
-                  <span className="bg-[#ebddff] text-primary text-[10px] font-black py-1.5 px-4 rounded-full tracking-wider select-none">
-                    메인 헤드라인
-                  </span>
-                </div>
-
-                {/* Main Headline */}
-                <div className="text-center space-y-1.5">
-                  {isEditingMode ? (
-                    <textarea 
-                      value={editableHeadline} 
-                      onChange={(e) => setEditableHeadline(e.target.value)}
-                      className="w-full font-display font-extrabold text-[#111] text-lg text-center bg-yellow-50 border border-yellow-300 focus:outline-none p-2 rounded-xl min-h-[60px]"
-                    />
-                  ) : (
-                    <h3 className="font-display font-extrabold text-[#111] text-xl tracking-tight leading-snug whitespace-pre-line">
-                      {editableHeadline}
-                    </h3>
-                  )}
-                </div>
-
-                {/* Hotlinked Image Container */}
-                <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-[#ebddff]/20 border border-gray-100 flex items-center justify-center">
-                  {!brokenImages[activeProject.generatedDetails.imageHotlink] ? (
-                    <img 
-                      src={activeProject.generatedDetails.imageHotlink} 
-                      alt={activeProject.generatedDetails.imageAlt}
-                      className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                      onError={() => handleImageError(activeProject.generatedDetails.imageHotlink)}
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
-                      <Sparkles className="w-10 h-10 text-primary/30 mb-2" />
-                      <p className="text-xs font-bold text-gray-400">이미지가 로드되지 않았습니다</p>
-                      <p className="text-[10px] text-gray-400/80 mt-1">상세페이지 카피라이팅 편집에 집중하여 확인할 수 있습니다.</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Tagline / Subtitle section */}
-                <div className="text-center px-2">
-                  {isEditingMode ? (
-                    <textarea 
-                      value={editableSubtitle} 
-                      onChange={(e) => setEditableSubtitle(e.target.value)}
-                      className="w-full font-sans text-xs text-center text-gray-500 bg-yellow-50 border border-yellow-300 focus:outline-none p-2 rounded-xl min-h-[40px] leading-relaxed"
-                    />
-                  ) : (
-                    <p className="font-sans text-gray-500 text-sm leading-relaxed whitespace-pre-line">
-                      {editableSubtitle}
-                    </p>
-                  )}
-                </div>
-
-              </div>
-
-              {/* Section 2: "문제 해결 전략" (Problem Solving Strategy) from Mockup */}
-              <div className="px-4 space-y-3.5">
-                <div className="flex items-center gap-2 text-primary font-display font-extrabold text-base">
-                  <span className="material-symbols-outlined text-primary text-xl">forum</span>
-                  <span>문제 해결 전략</span>
-                </div>
-
-                <div className="p-5 bg-[#f1f3ff] border border-primary/10 rounded-2xl space-y-3">
-                  {/* Problem Question */}
-                  {isEditingMode ? (
-                    <textarea 
-                      value={editableProblemQuestion} 
-                      onChange={(e) => setEditableProblemQuestion(e.target.value)}
-                      className="w-full font-extrabold text-[15px] leading-snug text-primary bg-yellow-50 border border-yellow-300 focus:outline-none p-2 rounded-xl min-h-[40px]"
-                    />
-                  ) : (
-                    <h4 className="font-extrabold text-base leading-snug text-primary font-sans">
-                      {editableProblemQuestion}
-                    </h4>
-                  )}
-
-                  {/* Problem Answer */}
-                  {isEditingMode ? (
-                    <textarea 
-                      value={editableProblemAnswer} 
-                      onChange={(e) => setEditableProblemAnswer(e.target.value)}
-                      className="w-full font-sans text-xs leading-relaxed text-gray-600 bg-yellow-50 border border-yellow-300 focus:outline-none p-2 rounded-xl min-h-[100px]"
-                    />
-                  ) : (
-                    <p className="font-sans text-[13px] leading-relaxed text-gray-600 whitespace-pre-line">
-                      {editableProblemAnswer}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Section 3: High conversion USPs boxes layout from mockup */}
-              <div className="px-4 space-y-3.5">
-                {activeProject.generatedDetails.usps.map((usp, i) => (
-                  <div key={i} className="p-4 bg-white border border-[#e2e8f0] rounded-2xl flex flex-col items-center justify-center text-center space-y-2 mt-2">
-                    
-                    {/* Circle icon */}
-                    <div className="bg-[#ebddff] p-3 rounded-full flex items-center justify-center">
-                      {getUspIcon(usp.icon)}
-                    </div>
-
-                    <h5 className="font-sans font-extrabold text-sm text-[#111]">
-                      {usp.title}
-                    </h5>
-                    
-                    <p className="font-sans text-[11px] text-gray-500 leading-normal">
-                      {usp.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              {/* EXTRA: "AI 이미지 가이드 확인하기" Button (Opens prompt modal) */}
-              <div className="px-4 pb-12">
-                <button 
-                  onClick={() => setShowAiImageGuide(!showAiImageGuide)}
-                  className="w-full bg-[#f1f3ff] border-2 border-dashed border-primary/25 rounded-2xl p-4 flex flex-col items-center justify-center text-center space-y-1 hover:border-primary/50 transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center gap-1.5 text-primary text-xs font-extrabold">
+          <div className="flex flex-col min-h-screen bg-[#f8f9fc] w-full">
+            {/* Professional Global Top Header for Desktop, Mobile header for mobile */}
+            {isDesktopLayout ? (
+              <header className="w-full bg-white border-b border-[#f0f0f5] px-8 py-4 flex items-center justify-between sticky top-0 z-40 bg-white/80 backdrop-blur-md select-none">
+                <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentView("dashboard")}>
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#5300b7] to-[#800cf2] flex items-center justify-center text-white shrink-0 shadow-md">
                     <Sparkles className="w-4 h-4" />
-                    <span>AI 이미지 가이드 확인하기</span>
                   </div>
-                  <p className="text-[10px] text-gray-400">이 카피에 가장 잘 어울리는 이미지 프롬프트를 확인하세요.</p>
+                  <h1 className="text-lg md:text-xl font-display font-black text-primary tracking-tight">팔리는페이지</h1>
+                  <span className="bg-primary/10 text-primary text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ml-1.5 leading-none">AI 상세 에디터</span>
+                </div>
+                
+                {/* Center visual tab state */}
+                <div className="flex gap-1.5 bg-gray-100 p-1.5 rounded-xl">
+                  <button 
+                    onClick={() => setIsEditingMode(false)}
+                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${!isEditingMode ? "bg-white text-primary shadow-xs" : "text-gray-500 hover:text-gray-800"}`}
+                  >
+                    실시간 지식형 미리보기
+                  </button>
+                  <button 
+                    onClick={() => setIsEditingMode(true)}
+                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${isEditingMode ? "bg-white text-primary shadow-xs" : "text-gray-500 hover:text-gray-800"}`}
+                  >
+                    카피 즉시 편집하기
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={handleSaveEdits}
+                    className="bg-primary hover:bg-[#410091] text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs hover:shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    <span>편집본 저장</span>
+                  </button>
+                  <button 
+                    onClick={() => setCurrentView("dashboard")} 
+                    className="text-xs font-bold text-gray-500 hover:text-primary flex items-center gap-1 cursor-pointer bg-white border border-gray-200/80 px-4 py-2.5 rounded-xl transition-all"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span>대시보드 가기</span>
+                  </button>
+                </div>
+              </header>
+            ) : (
+              <header className="sticky top-0 bg-white border-b border-[#eee] px-4 py-3 z-30 shadow-sm flex items-center justify-between">
+                <button 
+                  onClick={() => setCurrentView("dashboard")} 
+                  className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500"
+                  title="대시보드로 가기"
+                >
+                  <ArrowLeft className="w-5 h-5" />
                 </button>
+                <span className="font-display font-black text-primary text-base">AI 생성 결과</span>
+                <div className="bg-[#ebddff] p-1 rounded-full cursor-pointer hover:opacity-85">
+                  <User className="w-5 h-5 text-primary" />
+                </div>
+              </header>
+            )}
 
-                {/* Toggle Prompt details */}
-                {showAiImageGuide && (
-                  <div className="mt-3 p-4 bg-white border border-[#e2e8f0] rounded-2xl space-y-2.5 shadow-sm transform transition-all">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[11px] font-bold text-gray-800">추천 이미지 Alt/기획</span>
-                      <span className="text-[9px] bg-primary/10 text-primary py-0.5 px-2 rounded font-bold font-mono">Suggested</span>
-                    </div>
-                    <p className="text-xs text-gray-600 font-sans italic leading-relaxed">
-                      "{activeProject.generatedDetails.imageAlt}"
-                    </p>
-                    <div className="h-[1px] bg-[#eee]" />
-                    <span className="text-[11px] font-bold text-gray-800 block">AI 생성용 프롬프트 (English)</span>
-                    <div className="bg-[#f1f3f9] p-3 rounded-xl">
-                      <p className="text-[10px] text-gray-600 font-mono select-all leading-normal">
-                        {activeProject.generatedDetails.imagePrompt}
-                      </p>
-                    </div>
-                    <span className="text-[9px] text-gray-400 leading-normal block">💡 이 프롬프트를 복사하여 Midjourney 혹은 Imagen에 대입하면 최적의 제품 컷을 생성해냅니다.</span>
-                  </div>
-                )}
+            {/* Mobile Header Tabs (hidden on Desktop layout mode) */}
+            {!isDesktopLayout && (
+              <div className="bg-white border-b border-[#eee] py-3.5 px-4 sticky top-[53px] z-20 shadow-xs flex items-center justify-center">
+                <div className="flex items-center gap-2 bg-[#f1f3ff] p-1.5 rounded-2xl w-full max-w-sm justify-between">
+                  <button 
+                    onClick={() => setIsEditingMode(false)}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${!isEditingMode ? "bg-white text-primary shadow-sm" : "text-gray-500 hover:text-primary"}`}
+                  >
+                    <Eye className="w-4 h-4" />
+                    <span>미리보기</span>
+                  </button>
+                  <button 
+                    onClick={() => setIsEditingMode(true)}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${isEditingMode ? "bg-white text-primary shadow-sm" : "text-gray-500 hover:text-primary"}`}
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    <span>편집하기</span>
+                  </button>
+                  <button 
+                    onClick={handleSaveEdits}
+                    className="bg-primary text-white flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:opacity-90 active:scale-95 transition-all"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>저장</span>
+                  </button>
+                </div>
               </div>
-            </main>
+            )}
 
-            {/* Bottom Nav on Result page to quickly return Home */}
-            <div className="sticky bottom-0 max-w-md w-full bg-white border-t border-[#eee] min-h-16 px-4 flex items-center justify-around shadow-xl z-20">
-              <button 
-                onClick={() => setCurrentView("dashboard")}
-                className="flex flex-col items-center gap-1 text-gray-400 hover:text-primary focus:outline-none cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[23px]">home</span>
-                <span className="text-[10px] font-bold">홈</span>
-              </button>
-              
-              <button 
-                onClick={() => showToast("전체 프로젝트 페이지 준비 중입니다!")}
-                className="flex flex-col items-center gap-1 text-[#5300b7] font-bold focus:outline-none cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[23px]" style={{ fontVariationSettings: "'FILL' 1" }}>folder_open</span>
-                <span className="text-[10px] font-bold">프로젝트</span>
-              </button>
+            {/* Main content body */}
+            {isDesktopLayout ? (
+              <main className="flex-1 max-w-7xl mx-auto w-full px-8 py-8 md:grid md:grid-cols-12 md:gap-8 md:items-start overflow-y-auto">
+                {/* 
+                  LEFT COLUMN: EDIT CONTROLS OR METADATA SUMMARY 
+                */}
+                <div className="md:col-span-5 space-y-6 sticky top-24">
+                  {isEditingMode ? (
+                    <div className="bg-white border border-gray-200/80 p-6 rounded-3xl space-y-5 shadow-xs">
+                      <div className="border-b border-gray-100 pb-3">
+                        <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">카피 라이팅 편집 중</span>
+                        <h3 className="text-base font-extrabold text-gray-900 mt-2 font-display">실시간 앵글 라이터</h3>
+                        <p className="text-[11px] text-gray-400 mt-0.5">아래 문구를 수정하면 오른쪽 프리뷰 화면에 즉각 렌더링됩니다.</p>
+                      </div>
 
-              <button 
-                onClick={() => showToast("템플릿 탐색 페이지 준비 중입니다!")}
-                className="flex flex-col items-center gap-1 text-gray-400 hover:text-primary focus:outline-none cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[23px]">dashboard_customize</span>
-                <span className="text-[10px] font-bold">템플릿</span>
-              </button>
+                      {/* Headline Textarea */}
+                      <div className="space-y-1.5 flex flex-col">
+                        <label className="text-xs font-bold text-gray-700">메인 훅 헤드라인 수정</label>
+                        <textarea 
+                          value={editableHeadline} 
+                          onChange={(e) => setEditableHeadline(e.target.value)}
+                          className="w-full font-display font-bold text-gray-800 text-sm bg-yellow-50/30 border border-yellow-200 focus:border-amber-400 focus:outline-none p-3.5 rounded-xl min-h-[100px] leading-relaxed"
+                        />
+                      </div>
 
-              <button 
-                onClick={() => showToast("마이 페이지 준비 중입니다!")}
-                className="flex flex-col items-center gap-1 text-gray-400 hover:text-primary focus:outline-none cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[23px]">person</span>
-                <span className="text-[10px] font-bold">마이</span>
-              </button>
-            </div>
+                      {/* Subtitle Textarea */}
+                      <div className="space-y-1.5 flex flex-col">
+                        <label className="text-xs font-bold text-gray-700">태그라인 / 소제목 문구</label>
+                        <textarea 
+                          value={editableSubtitle} 
+                          onChange={(e) => setEditableSubtitle(e.target.value)}
+                          className="w-full font-sans text-xs text-gray-600 bg-yellow-50/30 border border-yellow-200 focus:border-amber-400 focus:outline-none p-3 rounded-xl min-h-[80px]"
+                        />
+                      </div>
+
+                      {/* Problem Question */}
+                      <div className="space-y-1.5 flex flex-col">
+                        <label className="text-xs font-bold text-gray-700">문제제기 질문 카피</label>
+                        <textarea 
+                          value={editableProblemQuestion} 
+                          onChange={(e) => setEditableProblemQuestion(e.target.value)}
+                          className="w-full text-xs font-bold text-primary bg-yellow-50/30 border border-yellow-200 focus:border-amber-400 focus:outline-none p-3 rounded-xl min-h-[60px]"
+                        />
+                      </div>
+
+                      {/* Problem Answer */}
+                      <div className="space-y-1.5 flex flex-col">
+                        <label className="text-xs font-bold text-gray-700">대안 제시와 문제 해결 본문</label>
+                        <textarea 
+                          value={editableProblemAnswer} 
+                          onChange={(e) => setEditableProblemAnswer(e.target.value)}
+                          className="w-full text-xs text-gray-600 bg-yellow-50/30 border border-yellow-200 focus:border-amber-400 focus:outline-none p-3 rounded-xl min-h-[140px] leading-relaxed"
+                        />
+                      </div>
+
+                      <button 
+                        onClick={handleSaveEdits}
+                        className="w-full bg-primary hover:bg-[#410091] text-white font-bold py-3.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer"
+                      >
+                        <Save className="w-4 h-4" />
+                        <span>수정본 저장하기</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="bg-gradient-to-br from-[#ebf3ff] to-[#e4e9fe] border border-primary/10 rounded-3xl p-8 space-y-6 shadow-xs select-none">
+                      <div className="space-y-2 font-display">
+                        <span className="bg-primary/10 text-primary text-[10px] font-black px-3 py-1.5 rounded-full tracking-wide">CRO 기획 레포트</span>
+                        <h3 className="text-xl font-black text-gray-900 leading-tight">선택한 소구 앵글 분석 요약</h3>
+                        <p className="text-xs text-gray-500 leading-relaxed font-sans">
+                          AI가 설계한 상품의 설득 구조도입니다. 사장님 비즈니스의 평생 고객을 맞이하기 위해 마련된 설계 기법을 확인해 보세요.
+                        </p>
+                      </div>
+
+                      <div className="space-y-4 pt-2 text-xs font-sans">
+                        <div className="bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-primary/5 space-y-1">
+                          <span className="text-[10px] font-bold text-primary">분석 대상 상품명</span>
+                          <p className="font-extrabold text-gray-800">{activeProject.name}</p>
+                        </div>
+
+                        <div className="bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-primary/5 space-y-1">
+                          <span className="text-[10px] font-bold text-primary">설정된 대표 카테고리</span>
+                          <p className="font-extrabold text-gray-800">{activeProject.category || "기본"}</p>
+                        </div>
+
+                        <div className="bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-primary/5 space-y-1">
+                          <span className="text-[10px] font-bold text-primary">특화 고객 페르소나</span>
+                          <p className="font-extrabold text-gray-800">{activeProject.targetCustomer || "잠재 고객"}</p>
+                        </div>
+                      </div>
+
+                      {/* Hint info */}
+                      <div className="flex gap-3 items-start text-xs text-gray-500 leading-relaxed font-sans bg-white/40 p-4 rounded-2xl border border-white/50">
+                        <span className="material-symbols-outlined text-[17px] text-primary mt-0.5">info</span>
+                        <span>전환 강도가 극강으로 배정되어 있습니다. 상단의 '카피 편집하기'를 활성화하면 세부 피드백 앵커를 자유롭게 수정해 영구 저장 가능합니다.</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 
+                  RIGHT COLUMN: DEVICE PREVIEW SIMULATOR 
+                */}
+                <div className="md:col-span-7 space-y-6">
+                  <div className="bg-white border border-gray-200/95 p-8 rounded-3xl shadow-sm space-y-6">
+                    {/* Top title */}
+                    <div className="border-b border-gray-100 pb-4 flex justify-between items-center select-none">
+                      <div className="space-y-0.5">
+                        <h3 className="text-sm font-extrabold text-gray-900 font-display">상세페이지 시뮬레이션 미리보기</h3>
+                        <p className="text-[10px] text-gray-400">네이버 스마트스토어 및 모바일 최적화 웹 뷰 규격</p>
+                      </div>
+                      <span className="bg-emerald-50 text-emerald-600 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>실시간 동기화 완료</span>
+                      </span>
+                    </div>
+
+                    {/* Simulated Mobile View block container (Centered inside the web container) */}
+                    <div className="max-w-md mx-auto border border-gray-150 rounded-3xl overflow-hidden bg-[#f9f9ff] shadow-inner pb-8">
+                      {/* Top wireframe line */}
+                      <div className="h-4 bg-gray-200/40 flex justify-center items-center gap-1">
+                        <div className="w-2 h-2 rounded-full bg-gray-300" />
+                        <div className="w-16 h-1 rounded-full bg-gray-300" />
+                      </div>
+
+                      {/* Header block in card */}
+                      <div className="p-4 flex justify-between items-center bg-white border-b border-gray-100">
+                        <span className="text-[10px] font-display font-extrabold text-primary">브랜드 공식 파트너</span>
+                        <div className="flex gap-1">
+                          <div className="w-2 h-2 rounded-full bg-primary/20" />
+                          <div className="w-2 h-2 rounded-full bg-primary/20" />
+                        </div>
+                      </div>
+
+                      {/* Mobile Body scroll block simulation */}
+                      <div className="p-5 space-y-6">
+                        
+                        {/* 1. Main Headline section */}
+                        <div className="p-5 bg-white border border-[#e2e8f0] rounded-2xl shadow-xs space-y-4 text-center">
+                          <div className="text-center">
+                            <span className="bg-[#ebddff] text-primary text-[9px] font-black py-1 px-3.5 rounded-full tracking-wider select-none">
+                              메인 헤드라인
+                            </span>
+                          </div>
+                          
+                          <h3 className="font-display font-extrabold text-[#111] text-base md:text-lg tracking-tight leading-snug whitespace-pre-line">
+                            {editableHeadline}
+                          </h3>
+
+                          {/* Image inside mockup */}
+                          <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-purple-50 flex items-center justify-center">
+                            {!brokenImages[activeProject.generatedDetails.imageHotlink] ? (
+                              <img 
+                                src={activeProject.generatedDetails.imageHotlink} 
+                                alt={activeProject.generatedDetails.imageAlt}
+                                className="w-full h-full object-cover"
+                                referrerPolicy="no-referrer"
+                                onError={() => handleImageError(activeProject.generatedDetails.imageHotlink)}
+                              />
+                            ) : (
+                              <div className="absolute inset-0 bg-gray-50 flex flex-col items-center justify-center p-4 text-center">
+                                <Sparkles className="w-8 h-8 text-primary/30 mb-1" />
+                                <span className="text-[10px] font-bold text-gray-400">이미지 분석 가이드 대체</span>
+                              </div>
+                            )}
+                          </div>
+
+                          <p className="font-sans text-gray-500 text-[11px] leading-relaxed whitespace-pre-line">
+                            {editableSubtitle}
+                          </p>
+                        </div>
+
+                        {/* 2. Problem Question block */}
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1.5 text-primary font-display font-extrabold text-xs pl-1">
+                            <span className="material-symbols-outlined text-[15px]">forum</span>
+                            <span>문제 제기 후 설득 앵글</span>
+                          </div>
+
+                          <div className="p-5 bg-[#f1f3ff] border border-primary/10 rounded-2xl space-y-2">
+                            <h4 className="font-extrabold text-xs text-primary leading-snug">
+                              {editableProblemQuestion}
+                            </h4>
+                            <p className="font-sans text-[11px] leading-relaxed text-gray-600 whitespace-pre-line">
+                              {editableProblemAnswer}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* 3. USP Grid boxes inside mockup */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-1.5 text-gray-800 font-display font-extrabold text-xs pl-1">
+                            <span className="material-symbols-outlined text-[15px]">verified</span>
+                            <span>구매 보증 USPs</span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            {activeProject.generatedDetails.usps.map((usp, i) => (
+                              <div key={i} className="p-3 bg-white border border-[#e2e8f0] rounded-xl flex flex-col items-center justify-center text-center space-y-1.5">
+                                <div className="bg-[#ebddff] p-1.5 rounded-full">
+                                  {getUspIcon(usp.icon)}
+                                </div>
+                                <h5 className="font-sans font-bold text-[10px] text-[#111]">
+                                  {usp.title}
+                                </h5>
+                                <p className="font-sans text-[9px] text-gray-400 leading-normal line-clamp-2">
+                                  {usp.description}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Prompt controller in mockup */}
+                        <div className="bg-white border border-gray-150 rounded-2xl p-4 space-y-2 shadow-xs">
+                          <button 
+                            onClick={() => setShowAiImageGuide(!showAiImageGuide)}
+                            className="w-full bg-[#f1f3ff] border-2 border-dashed border-primary/25 rounded-xl p-2.5 flex flex-col items-center justify-center text-center space-y-1 hover:border-primary/50 transition-colors cursor-pointer"
+                          >
+                            <div className="flex items-center gap-1 text-primary text-[10px] font-extrabold">
+                              <Sparkles className="w-3.5 h-3.5" />
+                              <span>AI 상세 이미지 구호법 보기</span>
+                            </div>
+                          </button>
+                          {showAiImageGuide && (
+                            <div className="p-2.5 bg-gray-50 rounded-xl space-y-1.5 text-[10px] font-sans">
+                              <span className="font-bold text-gray-700 block">영어 생성 프롬프트:</span>
+                              <p className="text-gray-500 bg-white p-2 rounded-lg border border-gray-100 font-mono select-all text-[9.5px]">
+                                {activeProject.generatedDetails.imagePrompt}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </main>
+            ) : (
+              /* Mobile Results scroll view */
+              <>
+                <main id="result_page_preview" className="flex-1 overflow-y-auto hide-scrollbar pb-24 space-y-6">
+                  {/* Card wrapper representing the generated details catalog template */}
+                  <div className="mx-4 mt-5 p-5 bg-white border border-[#e2e8f0] rounded-2xl shadow-sm space-y-5">
+                    
+                    {/* Floating header tag */}
+                    <div className="text-center">
+                      <span className="bg-[#ebddff] text-primary text-[10px] font-black py-1.5 px-4 rounded-full tracking-wider select-none">
+                        메인 헤드라인
+                      </span>
+                    </div>
+
+                    {/* Main Headline */}
+                    <div className="text-center space-y-1.5">
+                      {isEditingMode ? (
+                        <textarea 
+                          value={editableHeadline} 
+                          onChange={(e) => setEditableHeadline(e.target.value)}
+                          className="w-full font-display font-extrabold text-[#111] text-lg text-center bg-yellow-50 border border-yellow-300 focus:outline-none p-2 rounded-xl min-h-[60px]"
+                        />
+                      ) : (
+                        <h3 className="font-display font-extrabold text-[#111] text-xl tracking-tight leading-snug whitespace-pre-line">
+                          {editableHeadline}
+                        </h3>
+                      )}
+                    </div>
+
+                    {/* Image Container */}
+                    <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-[#ebddff]/20 border border-gray-100 flex items-center justify-center">
+                      {!brokenImages[activeProject.generatedDetails.imageHotlink] ? (
+                        <img 
+                          src={activeProject.generatedDetails.imageHotlink} 
+                          alt={activeProject.generatedDetails.imageAlt}
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                          onError={() => handleImageError(activeProject.generatedDetails.imageHotlink)}
+                        />
+                      ) : (
+                        <div className="absolute inset-0 bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
+                          <Sparkles className="w-10 h-10 text-primary/30 mb-2" />
+                          <p className="text-xs font-bold text-gray-400">이미지가 로드되지 않았습니다</p>
+                          <p className="text-[10px] text-gray-400/80 mt-1">상세페이지 카피라이팅 편집에 집중하여 확인할 수 있습니다.</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Tagline / Subtitle section */}
+                    <div className="text-center px-2">
+                      {isEditingMode ? (
+                        <textarea 
+                          value={editableSubtitle} 
+                          onChange={(e) => setEditableSubtitle(e.target.value)}
+                          className="w-full font-sans text-xs text-center text-gray-500 bg-yellow-50 border border-yellow-300 focus:outline-none p-2 rounded-xl min-h-[40px] leading-relaxed"
+                        />
+                      ) : (
+                        <p className="font-sans text-gray-500 text-sm leading-relaxed whitespace-pre-line">
+                          {editableSubtitle}
+                        </p>
+                      )}
+                    </div>
+
+                  </div>
+
+                  {/* Section 2: "문제 해결 전략" (Problem Solving Strategy) from Mockup */}
+                  <div className="px-4 space-y-3.5">
+                    <div className="flex items-center gap-2 text-primary font-display font-extrabold text-base">
+                      <span className="material-symbols-outlined text-primary text-xl">forum</span>
+                      <span>문제 해결 전략</span>
+                    </div>
+
+                    <div className="p-5 bg-[#f1f3ff] border border-primary/10 rounded-2xl space-y-3">
+                      {/* Problem Question */}
+                      {isEditingMode ? (
+                        <textarea 
+                          value={editableProblemQuestion} 
+                          onChange={(e) => setEditableProblemQuestion(e.target.value)}
+                          className="w-full font-extrabold text-[15px] leading-snug text-primary bg-yellow-50 border border-yellow-300 focus:outline-none p-2 rounded-xl min-h-[40px]"
+                        />
+                      ) : (
+                        <h4 className="font-extrabold text-base leading-snug text-primary font-sans">
+                          {editableProblemQuestion}
+                        </h4>
+                      )}
+
+                      {/* Problem Answer */}
+                      {isEditingMode ? (
+                        <textarea 
+                          value={editableProblemAnswer} 
+                          onChange={(e) => setEditableProblemAnswer(e.target.value)}
+                          className="w-full font-sans text-xs leading-relaxed text-gray-600 bg-yellow-50 border border-yellow-300 focus:outline-none p-2 rounded-xl min-h-[100px]"
+                        />
+                      ) : (
+                        <p className="font-sans text-[13px] leading-relaxed text-gray-600 whitespace-pre-line">
+                          {editableProblemAnswer}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Section 3: High conversion USPs boxes layout from mockup */}
+                  <div className="px-4 space-y-3.5">
+                    {activeProject.generatedDetails.usps.map((usp, i) => (
+                      <div key={i} className="p-4 bg-white border border-[#e2e8f0] rounded-2xl flex flex-col items-center justify-center text-center space-y-2 mt-2">
+                        {/* Circle icon */}
+                        <div className="bg-[#ebddff] p-3 rounded-full flex items-center justify-center">
+                          {getUspIcon(usp.icon)}
+                        </div>
+                        <h5 className="font-sans font-extrabold text-sm text-[#111]">
+                          {usp.title}
+                        </h5>
+                        <p className="font-sans text-[11px] text-gray-500 leading-normal">
+                          {usp.description}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* EXTRA: "AI 이미지 가이드 확인하기" Button (Opens prompt modal) */}
+                  <div className="px-4 pb-12">
+                    <button 
+                      onClick={() => setShowAiImageGuide(!showAiImageGuide)}
+                      className="w-full bg-[#f1f3ff] border-2 border-dashed border-primary/25 rounded-2xl p-4 flex flex-col items-center justify-center text-center space-y-1 hover:border-primary/50 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-1.5 text-primary text-xs font-extrabold">
+                        <Sparkles className="w-4 h-4" />
+                        <span>AI 이미지 가이드 확인하기</span>
+                      </div>
+                      <p className="text-[10px] text-gray-400">이 카피에 가장 잘 어울리는 이미지 프롬프트를 확인하세요.</p>
+                    </button>
+
+                    {showAiImageGuide && (
+                      <div className="mt-3 p-4 bg-white border border-[#e2e8f0] rounded-2xl space-y-2.5 shadow-sm transform transition-all">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[11px] font-bold text-gray-800">추천 이미지 Alt/기획</span>
+                          <span className="text-[9px] bg-primary/10 text-primary py-0.5 px-2 rounded font-bold font-mono">Suggested</span>
+                        </div>
+                        <p className="text-xs text-gray-600 font-sans italic leading-relaxed">
+                          "{activeProject.generatedDetails.imageAlt}"
+                        </p>
+                        <div className="h-[1px] bg-[#eee]" />
+                        <span className="text-[11px] font-bold text-gray-800 block">AI 생성용 프롬프트 (English)</span>
+                        <div className="bg-[#f1f3f9] p-3 rounded-xl">
+                          <p className="text-[10px] text-gray-600 font-mono select-all leading-normal">
+                            {activeProject.generatedDetails.imagePrompt}
+                          </p>
+                        </div>
+                        <span className="text-[9px] text-gray-400 leading-normal block">💡 이 프롬프트를 복사하여 Midjourney 혹은 Imagen에 대입하면 최적의 제품 컷을 생성해냅니다.</span>
+                      </div>
+                    )}
+                  </div>
+                </main>
+
+                {/* Bottom Nav on Result page to quickly return Home */}
+                <div className="sticky bottom-0 max-w-md w-full bg-white border-t border-[#eee] min-h-16 px-4 flex items-center justify-around shadow-xl z-20">
+                  <button 
+                    onClick={() => setCurrentView("dashboard")}
+                    className="flex flex-col items-center gap-1 text-gray-400 hover:text-primary focus:outline-none cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[23px]">home</span>
+                    <span className="text-[10px] font-bold">홈</span>
+                  </button>
+                  
+                  <button 
+                    onClick={() => showToast("전체 프로젝트 페이지 준비 중입니다!")}
+                    className="flex flex-col items-center gap-1 text-[#5300b7] font-bold focus:outline-none cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[23px]" style={{ fontVariationSettings: "'FILL' 1" }}>folder_open</span>
+                    <span className="text-[10px] font-bold">프로젝트</span>
+                  </button>
+
+                  <button 
+                    onClick={() => showToast("템플릿 탐색 페이지 준비 중입니다!")}
+                    className="flex flex-col items-center gap-1 text-gray-400 hover:text-primary focus:outline-none cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[23px]">dashboard_customize</span>
+                    <span className="text-[10px] font-bold">템플릿</span>
+                  </button>
+
+                  <button 
+                    onClick={() => showToast("마이 페이지 준비 중입니다!")}
+                    className="flex flex-col items-center gap-1 text-gray-400 hover:text-primary focus:outline-none cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[23px]">person</span>
+                    <span className="text-[10px] font-bold">마이</span>
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         )}
 
         {/* VIEW: DIAGNOSIS INPUT VIEW */}
         {currentView === "diagnosis-input" && (
-          <div className="flex flex-col min-h-screen bg-[#f8f9fc]">
-            <header className="sticky top-0 bg-white border-b border-[#eee] min-h-16 px-4 flex items-center justify-between z-10 shadow-sm col-span-full">
-              <button 
-                onClick={() => setCurrentView("dashboard")} 
-                className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 focus:outline-none cursor-pointer"
-              >
-                <ArrowLeft className="w-5 h-5 text-gray-600" />
-              </button>
-              <h3 className="text-base font-display font-extrabold text-gray-800">상세페이지 AI 정밀 진단</h3>
-              <div className="w-8 h-8" />
-            </header>
-
-            <main className="flex-1 p-5 space-y-6 pb-28">
-              {/* Top Banner */}
-              <div className="bg-gradient-to-r from-primary to-[#7012ff] text-white p-5 rounded-2xl shadow-sm space-y-1.5 relative overflow-hidden">
-                <div className="z-10 relative">
-                  <span className="text-[10px] bg-white/20 py-0.5 px-2 rounded-full font-bold">Premium CRO Doctor</span>
-                  <h4 className="text-base font-display font-bold mt-1.5">이탈 고객의 90%를 막는 진단 기법</h4>
-                  <p className="text-xs text-white/85">판매 부진 원인과 카피 부족 처방전을 즉시 받아보세요.</p>
+          <div className="flex flex-col min-h-screen bg-[#f8f9fc] w-full">
+            {/* Global Header adapted for Desktop and Mobile */}
+            {isDesktopLayout ? (
+              <header className="w-full bg-white border-b border-[#f0f0f5] px-8 py-4 flex items-center justify-between sticky top-0 z-40 bg-white/80 backdrop-blur-md select-none">
+                <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentView("dashboard")}>
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#5300b7] to-[#800cf2] flex items-center justify-center text-white shrink-0 shadow-md">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <h1 className="text-lg md:text-xl font-display font-black text-primary tracking-tight">팔리는페이지</h1>
+                  <span className="bg-primary/10 text-primary text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ml-1.5 leading-none">AI 정밀 진단닥터</span>
                 </div>
-                <BarChart2 className="w-20 h-20 absolute right-[-15px] bottom-[-15px] text-white/10" />
-              </div>
-
-              {/* Form inputs */}
-              <div className="bg-white border border-[#e2e8f0] p-5 rounded-3xl space-y-4 shadow-xs">
                 
-                {/* 1. Product Title */}
-                <div className="space-y-1.5 flex flex-col">
-                  <label className="text-xs font-bold text-gray-700 flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5 text-primary" />
-                    <span>진단 대상 상품명</span>
-                  </label>
-                  <input 
-                    type="text" 
-                    placeholder="예: 최상급 청송 유기농 사과즙"
-                    value={diagnosisPrdName}
-                    onChange={(e) => setDiagnosisPrdName(e.target.value)}
-                    className="w-full text-xs font-sans border border-[#cbd5e1] focus:border-primary focus:outline-none p-3.5 rounded-xl bg-gray-50/50 text-gray-900"
-                  />
-                </div>
+                <span className="font-display font-extrabold text-[#111] text-xs bg-gray-50 border border-gray-100 px-3.5 py-1.5 rounded-lg flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5 text-primary animate-pulse" />
+                  <span>상세페이지 심화 CRO 자가 분석 진단서 신청</span>
+                </span>
 
-                {/* 2. Category selection */}
-                <div className="space-y-1.5 flex flex-col">
-                  <label className="text-xs font-bold text-gray-700 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[15px] text-primary">category</span>
-                    <span>상품 카테고리</span>
-                  </label>
-                  <select 
-                    value={diagnosisCategory}
-                    onChange={(e) => setDiagnosisCategory(e.target.value)}
-                    className="w-full text-xs font-sans border border-[#cbd5e1] focus:border-primary focus:outline-none p-3.5 rounded-xl bg-white text-gray-900"
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => setCurrentView("dashboard")} 
+                    className="text-xs font-bold text-gray-500 hover:text-primary flex items-center gap-1 cursor-pointer bg-white border border-gray-200/80 px-4 py-2.5 rounded-xl transition-all"
                   >
-                    <option value="식품">식품</option>
-                    <option value="생활/주방">생활/주방</option>
-                    <option value="의류/패션">의류/패션</option>
-                    <option value="가전/디지털">가전/디지털</option>
-                    <option value="뷰티/화장품">뷰티/화장품</option>
-                  </select>
+                    <ArrowLeft className="w-4 h-4" />
+                    <span>대시보드로 가기</span>
+                  </button>
+                </div>
+              </header>
+            ) : (
+              <header className="sticky top-0 bg-white border-b border-[#eee] min-h-16 px-4 flex items-center justify-between z-10 shadow-sm">
+                <button 
+                  onClick={() => setCurrentView("dashboard")} 
+                  className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 focus:outline-none cursor-pointer"
+                >
+                  <ArrowLeft className="w-5 h-5 text-gray-600" />
+                </button>
+                <h3 className="text-base font-display font-extrabold text-gray-800">상세페이지 AI 정밀 진단</h3>
+                <div className="w-8 h-8" />
+              </header>
+            )}
+
+            {/* Main content area */}
+            {isDesktopLayout ? (
+              <main className="flex-1 max-w-7xl mx-auto w-full px-8 py-8 md:grid md:grid-cols-12 md:gap-8 md:items-start overflow-y-auto">
+                
+                {/* LEFT INFOCUS SUMMARY CARD COLUMN */}
+                <div className="md:col-span-5 space-y-6">
+                  <div className="bg-gradient-to-br from-[#ebf3ff] to-[#e4e9fe] border border-primary/10 rounded-3xl p-8 space-y-6 shadow-xs select-none">
+                    <div className="space-y-2 font-display">
+                      <span className="text-[10px] bg-primary/20 text-primary py-1 px-3 rounded-full font-bold uppercase tracking-wider">Premium CRO Doctor</span>
+                      <h3 className="text-xl font-black text-gray-900 mt-2">이탈률 대폭 저하 및 전환 기법</h3>
+                      <p className="text-xs text-gray-500 leading-relaxed font-sans mt-1">
+                        어려운 데이터 애널리틱스 분석 없이, 카피라이팅과 기획적 구조의 핵심 허점을 찾아 1:1 진단 처방안을 도출해냅니다.
+                      </p>
+                    </div>
+
+                    <div className="space-y-4 pt-2 text-xs font-sans">
+                      <div className="flex gap-3.5 bg-white p-4 rounded-2xl border border-primary/5">
+                        <div className="w-9 h-9 rounded-xl bg-[#ebddff] flex items-center justify-center text-primary shrink-0">
+                          <Eye className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-gray-800 text-xs">고객 시선의 3초 이탈 구간 개량</h4>
+                          <p className="text-gray-400 text-[10.5px] mt-0.5">핵심 훅 문장의 명확성과 흡인력을 정량 평가합니다.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3.5 bg-white p-4 rounded-2xl border border-primary/5">
+                        <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                          <Sparkles className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-gray-800 text-xs">해결 전략의 구체성 채점</h4>
+                          <p className="text-gray-400 text-[10.5px] mt-0.5">문제 제기와 대안 제시가 매끄러운 설득력을 구비 중인지 확인합니다.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3.5 bg-white p-4 rounded-2xl border border-primary/5">
+                        <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                          <ArrowRight className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-gray-800 text-xs">즉각적인 Before & After 개량카피 제시</h4>
+                          <p className="text-gray-400 text-[10.5px] mt-0.5">진단 즉시 현장에서 대입해볼 수 있는 직관적인 리라이팅 예시를 수혈합니다.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                {/* 3. URL input */}
-                <div className="space-y-1.5 flex flex-col">
-                  <label className="text-xs font-bold text-gray-700 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[15px] text-primary">link</span>
-                    <span>상세페이지 URL (선택)</span>
-                  </label>
-                  <input 
-                    type="text" 
-                    placeholder="예: https://smartstore.naver.com/my-shop/products/123"
-                    value={diagnosisUrl}
-                    onChange={(e) => setDiagnosisUrl(e.target.value)}
-                    className="w-full text-xs font-sans border border-[#cbd5e1] focus:border-primary focus:outline-none p-3.5 rounded-xl bg-gray-50/50 text-gray-900"
-                  />
+                {/* RIGHT DIAGNOSIS INPUT FORM COLUMN */}
+                <div className="md:col-span-7">
+                  <div className="bg-white border border-gray-200 p-8 rounded-3xl space-y-6 shadow-sm">
+                    <div className="border-b border-gray-100 pb-3 flex justify-between items-center select-none">
+                      <h3 className="text-base font-extrabold text-gray-900 font-display">상품 정보 입력 양식</h3>
+                      <span className="text-[10px] text-gray-400">필수 항목은 꼼꼼하게 작성해 주세요</span>
+                    </div>
+
+                    {/* 1. Product Title */}
+                    <div className="space-y-1.5 flex flex-col">
+                      <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-primary" />
+                        <span>진단 대상 상품명</span>
+                      </label>
+                      <input 
+                        type="text" 
+                        placeholder="예: 최상급 청송 유기농 사과즙"
+                        value={diagnosisPrdName}
+                        onChange={(e) => setDiagnosisPrdName(e.target.value)}
+                        className="w-full text-xs font-sans border border-[#cbd5e1] focus:border-primary focus:outline-none p-3.5 rounded-xl bg-gray-50/20 text-gray-900"
+                      />
+                    </div>
+
+                    {/* 2. Category selection */}
+                    <div className="space-y-1.5 flex flex-col">
+                      <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[15px] text-primary">category</span>
+                        <span>상품 카테고리</span>
+                      </label>
+                      <select 
+                        value={diagnosisCategory}
+                        onChange={(e) => setDiagnosisCategory(e.target.value)}
+                        className="w-full text-xs font-sans border border-[#cbd5e1] focus:border-primary focus:outline-none p-3.5 rounded-xl bg-white text-gray-900"
+                      >
+                        <option value="식품">식품</option>
+                        <option value="생활/주방">생활/주방</option>
+                        <option value="의류/패션">의류/패션</option>
+                        <option value="가전/디지털">가전/디지털</option>
+                        <option value="뷰티/화장품">뷰티/화장품</option>
+                      </select>
+                    </div>
+
+                    {/* 3. URL input */}
+                    <div className="space-y-1.5 flex flex-col">
+                      <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[15px] text-primary">link</span>
+                        <span>상세페이지 URL (선택)</span>
+                      </label>
+                      <input 
+                        type="text" 
+                        placeholder="예: https://smartstore.naver.com/my-shop/products/123"
+                        value={diagnosisUrl}
+                        onChange={(e) => setDiagnosisUrl(e.target.value)}
+                        className="w-full text-xs font-sans border border-[#cbd5e1] focus:border-primary focus:outline-none p-3.5 rounded-xl bg-gray-50/20 text-gray-900"
+                      />
+                    </div>
+
+                    {/* 4. Text Content input */}
+                    <div className="space-y-1.5 flex flex-col">
+                      <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[16px] text-primary">description</span>
+                        <span>상세페이지 기존 카피 직접 작성 (권장)</span>
+                      </label>
+                      <textarea 
+                        placeholder="현재 판매 중이거나 작성 중인 상세페이지 카피 문구나 특징 설명글을 적어 주시면, AI가 카피 전환율을 점검하고 개성 넘치는 비포&애프터 대안을 제안합니다."
+                        value={diagnosisContent}
+                        onChange={(e) => setDiagnosisContent(e.target.value)}
+                        className="w-full text-xs font-sans border border-[#cbd5e1] focus:border-primary focus:outline-none p-3.5 rounded-xl bg-gray-50/20 min-h-[160px] leading-relaxed text-gray-900"
+                      />
+                      <p className="text-[10px] text-gray-400">💡 문장이나 특징적인 소구 포인트가 구체적일수록 정교하고 완성도 높은 진단 리포트가 완성됩니다.</p>
+                    </div>
+
+                    <button 
+                      onClick={handleDiagnosePage}
+                      className="w-full bg-primary hover:bg-[#410091] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[98%] cursor-pointer"
+                    >
+                      <Activity className="w-5 h-5 text-white animate-pulse" />
+                      <span>상세페이지 AI 정밀 진단 시작</span>
+                    </button>
+                  </div>
                 </div>
+              </main>
+            ) : (
+              /* Mobile Diagnosis input flow container */
+              <>
+                <main className="flex-1 p-5 space-y-6 pb-28">
+                  {/* Top Banner */}
+                  <div className="bg-gradient-to-r from-primary to-[#7012ff] text-white p-5 rounded-2xl shadow-sm space-y-1.5 relative overflow-hidden">
+                    <div className="z-10 relative">
+                      <span className="text-[10px] bg-white/20 py-0.5 px-2 rounded-full font-bold">Premium CRO Doctor</span>
+                      <h4 className="text-base font-display font-bold mt-1.5">이탈 고객의 90%를 막는 진단 기법</h4>
+                      <p className="text-xs text-white/85">판매 부진 원인과 카피 부족 처방전을 즉시 받아보세요.</p>
+                    </div>
+                    <BarChart2 className="w-20 h-20 absolute right-[-15px] bottom-[-15px] text-white/10" />
+                  </div>
 
-                {/* 4. Text Content input */}
-                <div className="space-y-1.5 flex flex-col">
-                  <label className="text-xs font-bold text-gray-700 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[16px] text-primary">description</span>
-                    <span>상세페이지 기존 카피 직접 작성 (권장)</span>
-                  </label>
-                  <textarea 
-                    placeholder="현재 판매 중이거나 작성 중인 상세페이지 카피 문구나 특징 설명글을 적어 주시면, AI가 카피 전환율을 점검하고 개성 넘치는 비포&애프터 대안을 제안합니다."
-                    value={diagnosisContent}
-                    onChange={(e) => setDiagnosisContent(e.target.value)}
-                    className="w-full text-xs font-sans border border-[#cbd5e1] focus:border-primary focus:outline-none p-3.5 rounded-xl bg-gray-50/50 min-h-[140px] leading-relaxed text-gray-900"
-                  />
-                  <p className="text-[10px] text-gray-400">💡 문장이나 문구가 많을수록 AI가 더 상세하고 날카로운 피드백과 대안을 제시할 수 있습니다.</p>
+                  {/* Form inputs */}
+                  <div className="bg-white border border-[#e2e8f0] p-5 rounded-3xl space-y-4 shadow-xs">
+                    
+                    {/* 1. Product Title */}
+                    <div className="space-y-1.5 flex flex-col">
+                      <label className="text-xs font-bold text-gray-700 flex items-center gap-1">
+                        <Sparkles className="w-3.5 h-3.5 text-primary" />
+                        <span>진단 대상 상품명</span>
+                      </label>
+                      <input 
+                        type="text" 
+                        placeholder="예: 최상급 청송 유기농 사과즙"
+                        value={diagnosisPrdName}
+                        onChange={(e) => setDiagnosisPrdName(e.target.value)}
+                        className="w-full text-xs font-sans border border-[#cbd5e1] focus:border-primary focus:outline-none p-3.5 rounded-xl bg-gray-50/50 text-gray-900"
+                      />
+                    </div>
+
+                    {/* 2. Category selection */}
+                    <div className="space-y-1.5 flex flex-col">
+                      <label className="text-xs font-bold text-gray-700 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[15px] text-primary">category</span>
+                        <span>상품 카테고리</span>
+                      </label>
+                      <select 
+                        value={diagnosisCategory}
+                        onChange={(e) => setDiagnosisCategory(e.target.value)}
+                        className="w-full text-xs font-sans border border-[#cbd5e1] focus:border-primary focus:outline-none p-3.5 rounded-xl bg-white text-gray-900"
+                      >
+                        <option value="식품">식품</option>
+                        <option value="생활/주방">생활/주방</option>
+                        <option value="의류/패션">의류/패션</option>
+                        <option value="가전/디지털">가전/디지털</option>
+                        <option value="뷰티/화장품">뷰티/화장품</option>
+                      </select>
+                    </div>
+
+                    {/* 3. URL input */}
+                    <div className="space-y-1.5 flex flex-col">
+                      <label className="text-xs font-bold text-gray-700 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[15px] text-primary">link</span>
+                        <span>상세페이지 URL (선택)</span>
+                      </label>
+                      <input 
+                        type="text" 
+                        placeholder="예: https://smartstore.naver.com/my-shop/products/123"
+                        value={diagnosisUrl}
+                        onChange={(e) => setDiagnosisUrl(e.target.value)}
+                        className="w-full text-xs font-sans border border-[#cbd5e1] focus:border-primary focus:outline-none p-3.5 rounded-xl bg-gray-50/50 text-gray-900"
+                      />
+                    </div>
+
+                    {/* 4. Text Content input */}
+                    <div className="space-y-1.5 flex flex-col">
+                      <label className="text-xs font-bold text-gray-700 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[16px] text-primary">description</span>
+                        <span>상세페이지 기존 카피 직접 작성 (권장)</span>
+                      </label>
+                      <textarea 
+                        placeholder="현재 판매 중이거나 작성 중인 상세페이지 카피 문구나 특징 설명글을 적어 주시면, AI가 카피 전환율을 점검하고 개성 넘치는 비포&애프터 대안을 제안합니다."
+                        value={diagnosisContent}
+                        onChange={(e) => setDiagnosisContent(e.target.value)}
+                        className="w-full text-xs font-sans border border-[#cbd5e1] focus:border-primary focus:outline-none p-3.5 rounded-xl bg-gray-50/50 min-h-[140px] leading-relaxed text-gray-900"
+                      />
+                      <p className="text-[10px] text-gray-400">💡 문장이나 문구가 많을수록 AI가 더 상세하고 날카로운 피드백과 대안을 제시할 수 있습니다.</p>
+                    </div>
+
+                  </div>
+                </main>
+
+                {/* Bottom Sticky Action Trigger */}
+                <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-[#eee] p-4 z-40">
+                  <button 
+                    onClick={handleDiagnosePage}
+                    className="w-full bg-primary hover:bg-[#410091] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-transform active:scale-[98%] cursor-pointer"
+                  >
+                    <Activity className="w-5 h-5 text-white animate-pulse" />
+                    <span>상세페이지 AI 정밀 진단 시작</span>
+                  </button>
                 </div>
-
-              </div>
-            </main>
-
-            {/* Bottom Sticky Action Trigger */}
-            <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-[#eee] p-4 z-40">
-              <button 
-                onClick={handleDiagnosePage}
-                className="w-full bg-primary hover:bg-[#410091] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-transform active:scale-[98%] cursor-pointer"
-              >
-                <Activity className="w-5 h-5 text-white animate-pulse" />
-                <span>상세페이지 AI 정밀 진단 시작</span>
-              </button>
-            </div>
+              </>
+            )}
           </div>
         )}
+
 
         {/* VIEW: DIAGNOSIS LOADING VIEW */}
         {currentView === "diagnosis-loading" && (
@@ -3358,295 +4104,602 @@ export default function App() {
 
         {/* VIEW: DIAGNOSIS RESULT VIEW */}
         {currentView === "diagnosis-result" && diagnosisReport && (
-          <div className="flex flex-col min-h-screen bg-[#f5f7fc]">
-            <header className="sticky top-0 bg-white border-b border-[#eee] min-h-16 px-4 flex items-center justify-between z-30 shadow-sm col-span-full">
-              <button 
-                onClick={() => setCurrentView("dashboard")} 
-                className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 focus:outline-none cursor-pointer"
-                title="홈으로"
-              >
-                <ArrowLeft className="w-5 h-5 text-gray-600" />
-              </button>
-              <h3 className="text-base font-display font-extrabold text-gray-800">상세페이지 AI 진단서</h3>
-              <button 
-                onClick={() => setCurrentView("diagnosis-input")}
-                className="text-xs text-primary font-bold hover:underline cursor-pointer"
-              >
-                재입력
-              </button>
-            </header>
-
-            <main className="flex-1 p-4 space-y-6 pb-28">
-              
-              {/* Card 1: Score & Overall Verdict visual module */}
-              <div className="bg-white border border-[#e2e8f0] p-6 rounded-3xl shadow-sm text-center space-y-5 relative overflow-hidden">
-                <span className="text-[10px] font-display font-extrabold uppercase px-2.5 py-1 rounded-full bg-primary/10 text-primary tracking-wide">
-                  Conversion Strength Rate
+          <div className="flex flex-col min-h-screen bg-[#f8f9fc] w-full">
+            {/* Global Top Header adapted for Widescreen Desktop / Mobile */}
+            {isDesktopLayout ? (
+              <header className="w-full bg-white border-b border-[#f0f0f5] px-8 py-4 flex items-center justify-between sticky top-0 z-40 bg-white/80 backdrop-blur-md select-none">
+                <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentView("dashboard")}>
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#5300b7] to-[#800cf2] flex items-center justify-center text-white shrink-0 shadow-md">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <h1 className="text-lg md:text-xl font-display font-black text-primary tracking-tight">팔리는페이지</h1>
+                  <span className="bg-primary/10 text-primary text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ml-1.5 leading-none">AI 정밀 소구닥터</span>
+                </div>
+                
+                <span className="font-display font-extrabold text-[#111] text-xs bg-gray-50 border border-gray-100 px-3.5 py-1.5 rounded-lg flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5 text-[#5300b7] animate-pulse" />
+                  <span>상세페이지 심화 CRO 정밀 진단 결과 보고서</span>
                 </span>
 
-                {/* Interactive Score Circle widget */}
-                <div className="relative w-36 h-36 mx-auto flex items-center justify-center">
-                  {/* Background progress track indicator */}
-                  <div className="absolute inset-0 border-8 border-gray-100 rounded-full" />
-                  {/* Dynamic color outline based on score */}
-                  <div className={`absolute inset-0 border-8 rounded-full ${
-                    diagnosisReport.score < 60 
-                      ? "border-red-500" 
-                      : diagnosisReport.score < 80 
-                      ? "border-amber-500" 
-                      : "border-teal-500"
-                  }`} style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)" }} />
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => setCurrentView("diagnosis-input")}
+                    className="text-xs font-bold text-gray-500 hover:text-primary flex items-center gap-1 bg-white border border-gray-200/80 px-4 py-2 rounded-xl transition-all mr-1"
+                  >
+                    <span>새로 진단하기</span>
+                  </button>
+                  <button 
+                    onClick={() => setCurrentView("dashboard")} 
+                    className="text-xs font-bold text-white bg-primary hover:bg-[#410091] px-4 py-2 rounded-xl transition-all shadow-xs"
+                  >
+                    <span>대시보드로 가기</span>
+                  </button>
+                </div>
+              </header>
+            ) : (
+              <header className="sticky top-0 bg-white border-b border-[#eee] min-h-16 px-4 flex items-center justify-between z-30 shadow-sm col-span-full">
+                <button 
+                  onClick={() => setCurrentView("dashboard")} 
+                  className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 focus:outline-none cursor-pointer"
+                  title="홈으로"
+                >
+                  <ArrowLeft className="w-5 h-5 text-gray-600" />
+                </button>
+                <h3 className="text-base font-display font-extrabold text-gray-800">상세페이지 AI 진단서</h3>
+                <button 
+                  onClick={() => setCurrentView("diagnosis-input")}
+                  className="text-xs text-primary font-bold hover:underline cursor-pointer"
+                >
+                  재입력
+                </button>
+              </header>
+            )}
 
-                  {/* Rating values */}
-                  <div className="z-10 flex flex-col items-center">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Score</span>
-                    <span className="text-4xl font-display font-black text-gray-900">{diagnosisReport.score}</span>
-                    <span className={`text-[10px] font-extrabold px-2 py-0.5 mt-1 rounded-full ${
-                      diagnosisReport.score < 60 
-                        ? "bg-red-50 text-red-600" 
-                        : diagnosisReport.score < 80 
-                        ? "bg-amber-50 text-amber-600" 
-                        : "bg-teal-50 text-teal-600"
-                    }`}>
-                      {diagnosisReport.score < 60 ? "위험" : diagnosisReport.score < 80 ? "보통" : "최적"}
+            {/* Main content body */}
+            {isDesktopLayout ? (
+              <main className="flex-1 max-w-7xl mx-auto w-full px-8 py-8 md:grid md:grid-cols-12 md:gap-8 md:items-start overflow-y-auto">
+                {/* Desktop Left Column: Overall Verdict and scorecard */}
+                <div className="md:col-span-4 space-y-6 sticky top-24">
+                  {/* Card 1: Score & Overall Verdict visual module */}
+                  <div className="bg-white border border-gray-200/80 p-8 rounded-3xl shadow-xs text-center space-y-6 relative overflow-hidden select-none">
+                    <span className="text-[10px] font-display font-extrabold uppercase px-3 py-1.5 rounded-full bg-primary/10 text-primary tracking-wide">
+                      Conversion Strength Rate
                     </span>
-                  </div>
-                </div>
 
-                {/* Overall Diagnostic comment box */}
-                <div className="bg-gray-50 border border-gray-100 p-4 rounded-2xl text-left">
-                  <div className="flex items-center gap-1.5 text-xs text-gray-800 font-extrabold mb-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-primary" />
-                    <span>정밀 전문 진단 종합 의견</span>
-                  </div>
-                  <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-line font-sans">
-                    {diagnosisReport.overallVerdict}
-                  </p>
-                </div>
-              </div>
+                    {/* Interactive Score Circle widget */}
+                    <div className="relative w-36 h-36 mx-auto flex items-center justify-center">
+                      <div className="absolute inset-0 border-8 border-gray-100 rounded-full" />
+                      <div className={`absolute inset-0 border-8 rounded-full ${
+                        diagnosisReport.score < 60 
+                          ? "border-red-500" 
+                          : diagnosisReport.score < 80 
+                          ? "border-amber-500" 
+                          : "border-teal-500"
+                      }`} style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)" }} />
 
-              {/* Card 2: Metrics Grid */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-1.5 text-gray-800 font-display font-extrabold text-sm ml-1">
-                  <BarChart2 className="w-4 h-4 text-primary" />
-                  <span>진단 영역별 지표 평가</span>
-                </div>
-
-                <div className="grid grid-cols-1 gap-3">
-                  
-                  {/* 1. Hook */}
-                  <div className="bg-white border border-gray-200 p-4 rounded-2xl space-y-2">
-                    <div className="flex justify-between items-center bg-gray-50 p-2 rounded-xl">
-                      <span className="text-xs font-bold text-gray-800 flex items-center gap-1">
-                        <Sparkles className="w-4 h-4 text-amber-500" />
-                        <span>첫 3초 후킹 지수</span>
-                      </span>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-mono font-bold text-gray-900">{diagnosisReport.metrics.hook.score}점</span>
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                          diagnosisReport.metrics.hook.status === "취약"
-                            ? "bg-red-50 text-red-600 border border-red-100"
-                            : diagnosisReport.metrics.hook.status === "개선필요"
-                            ? "bg-amber-50 text-amber-600 border border-amber-100"
-                            : "bg-teal-50 text-teal-600 border border-teal-100"
+                      <div className="z-10 flex flex-col items-center">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Score</span>
+                        <span className="text-4xl font-display font-black text-gray-900">{diagnosisReport.score}</span>
+                        <span className={`text-[10px] font-extrabold px-2 py-0.5 mt-1 rounded-full ${
+                          diagnosisReport.score < 60 
+                            ? "bg-red-50 text-red-600" 
+                            : diagnosisReport.score < 80 
+                            ? "bg-amber-50 text-amber-600" 
+                            : "bg-teal-50 text-teal-600"
                         }`}>
-                          {diagnosisReport.metrics.hook.status}
+                          {diagnosisReport.score < 60 ? "위험" : diagnosisReport.score < 80 ? "보통" : "최적"}
                         </span>
                       </div>
                     </div>
-                    <p className="text-[11px] text-gray-500 leading-relaxed pl-1.5 font-sans">
-                      {diagnosisReport.metrics.hook.feedback}
-                    </p>
-                  </div>
 
-                  {/* 2. Agitation */}
-                  <div className="bg-white border border-gray-200 p-4 rounded-2xl space-y-2">
-                    <div className="flex justify-between items-center bg-gray-50 p-2 rounded-xl">
-                      <span className="text-xs font-bold text-gray-800 flex items-center gap-1">
-                        <ThumbsDown className="w-4 h-4 text-red-400" />
-                        <span>불편 공감 극대화 지수</span>
-                      </span>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-mono font-bold text-gray-900">{diagnosisReport.metrics.agitation.score}점</span>
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                          diagnosisReport.metrics.agitation.status === "취약"
-                            ? "bg-red-50 text-red-600 border border-red-100"
-                            : diagnosisReport.metrics.agitation.status === "개선필요"
-                            ? "bg-amber-50 text-amber-600 border border-amber-100"
-                            : "bg-teal-50 text-teal-600 border border-teal-100"
-                        }`}>
-                          {diagnosisReport.metrics.agitation.status}
-                        </span>
+                    {/* Overall Diagnostic comment box */}
+                    <div className="bg-gray-50 border border-gray-100 p-5 rounded-2xl text-left">
+                      <div className="flex items-center gap-1.5 text-xs text-gray-800 font-extrabold mb-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-primary" />
+                        <span>정밀 전문 진단 종합 의견</span>
                       </div>
+                      <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-line font-sans">
+                        {diagnosisReport.overallVerdict}
+                      </p>
                     </div>
-                    <p className="text-[11px] text-gray-500 leading-relaxed pl-1.5 font-sans">
-                      {diagnosisReport.metrics.agitation.feedback}
-                    </p>
                   </div>
 
-                  {/* 3. Clarity */}
-                  <div className="bg-white border border-gray-200 p-4 rounded-2xl space-y-2">
-                    <div className="flex justify-between items-center bg-gray-50 p-2 rounded-xl">
-                      <span className="text-xs font-bold text-gray-800 flex items-center gap-1">
-                        <ThumbsUp className="w-4 h-4 text-teal-500" />
-                        <span>USP 설명 선명도</span>
-                      </span>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-mono font-bold text-gray-900">{diagnosisReport.metrics.clarity.score}점</span>
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                          diagnosisReport.metrics.clarity.status === "취약"
-                            ? "bg-red-50 text-red-600 border border-red-100"
-                            : diagnosisReport.metrics.clarity.status === "개선필요"
-                            ? "bg-amber-50 text-amber-600 border border-amber-100"
-                            : "bg-teal-50 text-teal-600 border border-teal-100"
-                        }`}>
-                          {diagnosisReport.metrics.clarity.status}
-                        </span>
-                      </div>
+                  {/* Card 4: Action check lists */}
+                  <div className="bg-white p-6 rounded-3xl border border-gray-200 space-y-4 shadow-xs select-none">
+                    <div className="flex items-center gap-1.5 border-b border-gray-100 pb-2.5">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                      <span className="text-xs font-display font-extrabold text-[#111]">즉시 적용할 핵심 3대 실천 가이드</span>
                     </div>
-                    <p className="text-[11px] text-gray-500 leading-relaxed pl-1.5 font-sans">
-                      {diagnosisReport.metrics.clarity.feedback}
-                    </p>
-                  </div>
 
-                  {/* 4. Readability */}
-                  <div className="bg-white border border-gray-200 p-4 rounded-2xl space-y-2">
-                    <div className="flex justify-between items-center bg-gray-50 p-2 rounded-xl">
-                      <span className="text-xs font-bold text-gray-800 flex items-center gap-1">
-                        <Activity className="w-4 h-4 text-[#8b5cf6]" />
-                        <span>모바일 최적화 가독성</span>
-                      </span>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-mono font-bold text-gray-900">{diagnosisReport.metrics.readability.score}점</span>
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                          diagnosisReport.metrics.readability.status === "취약"
-                            ? "bg-red-50 text-red-600 border border-red-100"
-                            : diagnosisReport.metrics.readability.status === "개선필요"
-                            ? "bg-amber-50 text-amber-600 border border-amber-100"
-                            : "bg-teal-50 text-teal-600 border border-teal-100"
-                        }`}>
-                          {diagnosisReport.metrics.readability.status}
-                        </span>
-                      </div>
-                    </div>
-                    <p className="text-[11px] text-gray-500 leading-relaxed pl-1.5 font-sans">
-                      {diagnosisReport.metrics.readability.feedback}
-                    </p>
-                  </div>
-
-                </div>
-              </div>
-
-              {/* Card 3: Before vs After copy overhaul display box */}
-              <div className="space-y-3.5">
-                <div className="flex items-center gap-1.5 text-gray-800 font-display font-extrabold text-sm ml-1">
-                  <span className="material-symbols-outlined text-[17px] text-primary">published_with_changes</span>
-                  <span>AI 카피 대안 (개선 제안)</span>
-                </div>
-
-                <div className="space-y-4">
-                  {diagnosisReport.beforeAfterCopys.map((copy, i) => (
-                    <div key={i} className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-xs">
-                      
-                      {/* Section label */}
-                      <header className="bg-gray-50 px-4 py-2.5 border-b border-gray-100 flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-primary" />
-                        <span className="text-xs font-bold text-gray-700">{copy.sectionName}</span>
-                      </header>
-
-                      <div className="p-4 space-y-3">
-                        
-                        {/* Before (Red) */}
-                        <div className="bg-red-50 border border-red-100 p-3.5 rounded-2xl relative">
-                          <span className="absolute right-3.5 top-3.5 text-[8px] bg-red-100 text-red-600 py-0.5 px-2 rounded-full font-extrabold uppercase">
-                            Before (기존)
+                    <ul className="space-y-3">
+                      {diagnosisReport.recommendations.map((rec, i) => (
+                        <li key={i} className="flex items-start gap-2.5">
+                          <span className="w-5 h-5 bg-[#ebddff] text-primary rounded-full flex items-center justify-center text-[10px] font-mono font-black mt-0.5 flex-shrink-0">
+                            {i + 1}
                           </span>
-                          <span className="text-[10px] text-red-500 font-bold block mb-1">단조로운 문장</span>
-                          <p className="text-xs text-gray-600 leading-relaxed font-sans pr-14 italic">
-                            "{copy.before}"
+                          <p className="text-xs text-gray-600 font-sans leading-relaxed">
+                            {rec}
                           </p>
-                        </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
 
-                        {/* Arrow separator in middle */}
-                        <div className="flex justify-center my-1.5">
-                          <div className="bg-primary/5 p-1 rounded-full border border-primary/15 flex items-center justify-center">
-                            <span className="material-symbols-outlined text-primary text-base animate-pulse">arrow_downward</span>
+                {/* Desktop Right Column: Diagnostic breakdowns and core copy overhauls */}
+                <div className="md:col-span-8 space-y-6">
+                  {/* Card 2: Metrics List */}
+                  <div className="bg-white border border-gray-100 p-8 rounded-3xl shadow-sm space-y-4">
+                    <div className="flex items-center gap-1.5 text-gray-800 font-display font-extrabold text-sm border-b border-gray-100 pb-3 select-none">
+                      <BarChart2 className="w-4 h-4 text-primary" />
+                      <span>진단 영역별 지표 상세 채점표</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      
+                      {/* 1. Hook */}
+                      <div className="bg-gray-50/50 border border-gray-100 p-5 rounded-2xl space-y-2">
+                        <div className="flex justify-between items-center bg-white p-2 rounded-xl border border-gray-100">
+                          <span className="text-xs font-bold text-gray-800 flex items-center gap-1">
+                            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                            <span>첫 3초 후킹 지수</span>
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-mono font-bold text-gray-900">{diagnosisReport.metrics.hook.score}점</span>
+                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                              diagnosisReport.metrics.hook.status === "취약"
+                                ? "bg-red-50 text-red-600 border border-red-100"
+                                : diagnosisReport.metrics.hook.status === "개선필요"
+                                ? "bg-amber-50 text-amber-600 border border-amber-100"
+                                : "bg-teal-50 text-teal-600 border border-teal-100"
+                            }`}>
+                              {diagnosisReport.metrics.hook.status}
+                            </span>
                           </div>
                         </div>
+                        <p className="text-[11px] text-gray-500 leading-relaxed pl-1.5 font-sans">
+                          {diagnosisReport.metrics.hook.feedback}
+                        </p>
+                      </div>
 
-                        {/* After (Teal/Purple) */}
-                        <div className="bg-teal-50 border border-teal-100 p-4 rounded-2xl relative">
-                          <span className="absolute right-3.5 top-3.5 text-[8px] bg-[#ebddff] text-primary py-0.5 px-3 rounded-full font-bold uppercase flex items-center gap-1">
-                            <Sparkles className="w-2.5 h-2.5" />
-                            <span>AI 추천 한글 카피</span>
+                      {/* 2. Agitation */}
+                      <div className="bg-gray-50/50 border border-gray-100 p-5 rounded-2xl space-y-2">
+                        <div className="flex justify-between items-center bg-white p-2 rounded-xl border border-gray-100">
+                          <span className="text-xs font-bold text-gray-800 flex items-center gap-1">
+                            <ThumbsDown className="w-3.5 h-3.5 text-red-400" />
+                            <span>불편 공감 극대화 지수</span>
                           </span>
-                          <span className="text-[10px] text-teal-600 font-extrabold block mb-1">전환 증가를 일으키는 구성</span>
-                          <p className="text-xs text-gray-900 font-sans font-bold leading-relaxed pr-16">
-                            {copy.after}
-                          </p>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-mono font-bold text-gray-900">{diagnosisReport.metrics.agitation.score}점</span>
+                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                              diagnosisReport.metrics.agitation.status === "취약"
+                                ? "bg-red-50 text-red-600 border border-red-100"
+                                : diagnosisReport.metrics.agitation.status === "개선필요"
+                                ? "bg-amber-50 text-amber-600 border border-amber-100"
+                                : "bg-teal-50 text-teal-600 border border-teal-100"
+                            }`}>
+                              {diagnosisReport.metrics.agitation.status}
+                            </span>
+                          </div>
                         </div>
+                        <p className="text-[11px] text-gray-500 leading-relaxed pl-1.5 font-sans">
+                          {diagnosisReport.metrics.agitation.feedback}
+                        </p>
+                      </div>
 
+                      {/* 3. Clarity */}
+                      <div className="bg-gray-50/50 border border-gray-100 p-5 rounded-2xl space-y-2 col-span-2">
+                        <div className="flex justify-between items-center bg-white p-2 rounded-xl border border-gray-100">
+                          <span className="text-xs font-bold text-gray-800 flex items-center gap-1">
+                            <ThumbsUp className="w-3.5 h-3.5 text-teal-500" />
+                            <span>USP 설명 선명도</span>
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-mono font-bold text-gray-900">{diagnosisReport.metrics.clarity.score}점</span>
+                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                              diagnosisReport.metrics.clarity.status === "취약"
+                                ? "bg-red-50 text-red-600 border border-red-100"
+                                : diagnosisReport.metrics.clarity.status === "개선필요"
+                                ? "bg-amber-50 text-amber-600 border border-amber-100"
+                                : "bg-teal-50 text-teal-600 border border-teal-100"
+                            }`}>
+                              {diagnosisReport.metrics.clarity.status}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-gray-500 leading-relaxed pl-1.5 font-sans">
+                          {diagnosisReport.metrics.clarity.feedback}
+                        </p>
+                      </div>
+
+                      {/* 4. Readability */}
+                      <div className="bg-gray-50/50 border border-gray-100 p-5 rounded-2xl space-y-2 col-span-2">
+                        <div className="flex justify-between items-center bg-white p-2 rounded-xl border border-gray-100">
+                          <span className="text-xs font-bold text-gray-800 flex items-center gap-1">
+                            <Activity className="w-3.5 h-3.5 text-[#8b5cf6]" />
+                            <span>모바일 최적화 가독성 및 가치제안</span>
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-mono font-bold text-gray-900">{diagnosisReport.metrics.readability.score}점</span>
+                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                              diagnosisReport.metrics.readability.status === "취약"
+                                ? "bg-red-50 text-red-600 border border-red-100"
+                                : diagnosisReport.metrics.readability.status === "개선필요"
+                                ? "bg-amber-50 text-amber-600 border border-amber-100"
+                                : "bg-teal-50 text-teal-600 border border-teal-100"
+                            }`}>
+                              {diagnosisReport.metrics.readability.status}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-gray-500 leading-relaxed pl-1.5 font-sans">
+                          {diagnosisReport.metrics.readability.feedback}
+                        </p>
+                      </div>
+
+                    </div>
+                  </div>
+
+                  {/* Card 3: Before vs After copy overhaul display box */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-1.5 text-gray-800 font-display font-extrabold text-sm ml-1 select-none">
+                      <span className="material-symbols-outlined text-[17px] text-primary">published_with_changes</span>
+                      <span>AI 카피 대안 및 기획 수정 제안</span>
+                    </div>
+
+                    <div className="space-y-4">
+                      {diagnosisReport.beforeAfterCopys.map((copy, i) => (
+                        <div key={i} className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-xs">
+                          <header className="bg-gray-50 px-5 py-3 border-b border-gray-100 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-primary" />
+                            <span className="text-xs font-bold text-gray-700">{copy.sectionName}</span>
+                          </header>
+
+                          <div className="p-5 space-y-4">
+                            {/* Before (Red) */}
+                            <div className="bg-red-50 border border-red-100 p-4 rounded-2xl relative">
+                              <span className="absolute right-4 top-4 text-[8px] bg-red-100 text-red-600 py-0.5 px-2 rounded-full font-extrabold uppercase">
+                                Before (기존)
+                              </span>
+                              <span className="text-[10px] text-red-500 font-bold block mb-1">단조로운 문장</span>
+                              <p className="text-xs text-gray-600 leading-relaxed font-sans pr-14 italic">
+                                "{copy.before}"
+                              </p>
+                            </div>
+
+                            {/* Arrow separator */}
+                            <div className="flex justify-center">
+                              <div className="bg-primary/5 p-1 rounded-full border border-primary/15 flex items-center justify-center">
+                                <span className="material-symbols-outlined text-primary text-base">arrow_downward</span>
+                              </div>
+                            </div>
+
+                            {/* After (Teal/Purple) */}
+                            <div className="bg-teal-50 border border-teal-100 p-5 rounded-2xl relative">
+                              <span className="absolute right-4 top-4 text-[8px] bg-[#ebddff] text-primary py-0.5 px-3 rounded-full font-bold uppercase flex items-center gap-1">
+                                <Sparkles className="w-2.5 h-2.5" />
+                                <span>AI 추천 한글 카피</span>
+                              </span>
+                              <span className="text-[10px] text-teal-600 font-extrabold block mb-1">전환 증가를 일으키는 구성</span>
+                              <p className="text-xs text-gray-900 font-sans font-bold leading-relaxed pr-16 whitespace-pre-line">
+                                {copy.after}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Back to Home CTA Actions */}
+                  <div className="bg-[#f1f3ff] border border-primary/10 p-6 rounded-3xl flex items-center justify-between gap-4">
+                    <div className="space-y-1 text-left">
+                      <h4 className="text-sm font-extrabold text-gray-900 font-display">획기적인 전환용 카피 생성하기</h4>
+                      <p className="text-[11.5px] text-gray-500">지금 진단해본 정보를 온전히 렌더링에 주입하여 나만의 완벽한 모사 상세페이지 빌딩을 지시해 보세요.</p>
+                    </div>
+                    <div className="flex shrink-0 gap-2 font-sans">
+                      <button 
+                        onClick={() => setCurrentView("dashboard")}
+                        className="bg-white border border-[#cbd5e1] text-gray-700 text-xs font-bold px-4 py-3 rounded-xl transition-all cursor-pointer hover:bg-gray-5"
+                      >
+                        대시보드로 가기
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setName(diagnosisPrdName || "진단 상품");
+                          setCategory(diagnosisCategory);
+                          setTargetCustomer("이 상품의 고밀도 잠재고객 분들");
+                          setPainPoints([
+                            "가장 불편함을 느꼈을 법한 대표적 결핍 상황",
+                            "기존 시중의 보급형 제품 사용시 누적되는 아쉬운 애로 사항"
+                          ]);
+                          setUsPs([
+                            "가장 확실하고 투명한 강점 요인",
+                            "편안한 소지 및 환경을 배려한 최고급 설계",
+                            "소유에 최대 만족을 심는 마감과 검증"
+                          ]);
+                          setCurrentView("form-step-1");
+                        }}
+                        className="bg-primary hover:bg-[#410091] text-white text-xs font-bold px-5 py-3 rounded-xl shadow-md transition-all active:scale-[98%] cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-white" />
+                        <span>맞춤 상세 카피 제작</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </main>
+            ) : (
+              /* Mobile Results scroll view layout */
+              <>
+                <main className="flex-1 p-4 space-y-6 pb-24 overflow-y-auto">
+                  {/* Card 1: Score & Overall Verdict visual module */}
+                  <div className="bg-white border border-[#e2e8f0] p-6 rounded-3xl shadow-sm text-center space-y-5 relative overflow-hidden">
+                    <span className="text-[10px] font-display font-extrabold uppercase px-2.5 py-1 rounded-full bg-primary/10 text-primary tracking-wide">
+                      Conversion Strength Rate
+                    </span>
+
+                    {/* Interactive Score Circle widget */}
+                    <div className="relative w-36 h-36 mx-auto flex items-center justify-center">
+                      <div className="absolute inset-0 border-8 border-gray-100 rounded-full" />
+                      <div className={`absolute inset-0 border-8 rounded-full ${
+                        diagnosisReport.score < 60 
+                          ? "border-red-500" 
+                          : diagnosisReport.score < 80 
+                          ? "border-amber-500" 
+                          : "border-teal-500"
+                      }`} style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)" }} />
+
+                      <div className="z-10 flex flex-col items-center">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Score</span>
+                        <span className="text-4xl font-display font-black text-gray-900">{diagnosisReport.score}</span>
+                        <span className={`text-[10px] font-extrabold px-2 py-0.5 mt-1 rounded-full ${
+                          diagnosisReport.score < 60 
+                            ? "bg-red-50 text-red-600" 
+                            : diagnosisReport.score < 80 
+                            ? "bg-amber-50 text-amber-600" 
+                            : "bg-teal-50 text-teal-600"
+                        }`}>
+                          {diagnosisReport.score < 60 ? "위험" : diagnosisReport.score < 80 ? "보통" : "최적"}
+                        </span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
 
-              {/* Card 4: Action check lists */}
-              <div className="bg-white p-5 rounded-3xl border border-gray-200 space-y-4">
-                <div className="flex items-center gap-1.5 border-b border-gray-100 pb-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  <span className="text-xs font-display font-extrabold text-[#111]">즉시 적용할 핵심 3대 실천 가이드</span>
-                </div>
-
-                <ul className="space-y-3">
-                  {diagnosisReport.recommendations.map((rec, i) => (
-                    <li key={i} className="flex items-start gap-2.5">
-                      <span className="w-5 h-5 bg-[#ebddff] text-primary rounded-full flex items-center justify-center text-[10px] font-mono font-black mt-0.5 flex-shrink-0">
-                        {i + 1}
-                      </span>
-                      <p className="text-xs text-gray-600 font-sans leading-relaxed">
-                        {rec}
+                    {/* Overall Diagnostic comment box */}
+                    <div className="bg-gray-50 border border-gray-100 p-4 rounded-2xl text-left">
+                      <div className="flex items-center gap-1.5 text-xs text-gray-800 font-extrabold mb-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-primary" />
+                        <span>정밀 전문 진단 종합 의견</span>
+                      </div>
+                      <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-line font-sans">
+                        {diagnosisReport.overallVerdict}
                       </p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                    </div>
+                  </div>
 
-              {/* Back to Home CTA Actions */}
-              <div className="space-y-3 pt-2">
-                <button 
-                  onClick={() => {
-                    // Populate basic parameters to generate a fresh detailed copy page with CRO optimized values!
-                    setName(diagnosisPrdName || "진단 상품");
-                    setCategory(diagnosisCategory);
-                    setTargetCustomer("이 상품의 고밀도 잠재고객 분들");
-                    setPainPoints([
-                      "가장 불편함을 느꼈을 법한 대표적 결핍 상황",
-                      "기존 시중의 보급형 제품 사용시 누적되는 아쉬운 애로 사항"
-                    ]);
-                    setUsPs([
-                      "가장 확실하고 투명한 강점 요인",
-                      "편안한 소지 및 환경을 배려한 최고급 설계",
-                      "소유에 최대 만족을 심는 마감과 검증"
-                    ]);
-                    setCurrentView("form-step-1");
-                  }}
-                  className="w-full bg-primary hover:bg-[#410091] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-transform active:scale-[98%] cursor-pointer font-sans"
-                >
-                  <Sparkles className="w-5 h-5 text-white" />
-                  <span>이 진단내용 기반으로 새 상세 카피 만들기</span>
-                </button>
+                  {/* Card 2: Metrics Grid */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-1.5 text-gray-800 font-display font-extrabold text-sm ml-1">
+                      <BarChart2 className="w-4 h-4 text-primary" />
+                      <span>진단 영역별 지표 평가</span>
+                    </div>
 
-                <button 
-                  onClick={() => setCurrentView("dashboard")}
-                  className="w-full bg-white border border-[#cbd5e1] text-gray-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 active:scale-[98%] cursor-pointer font-sans"
-                >
-                  <span>대시보드로 가기</span>
-                </button>
-              </div>
+                    <div className="grid grid-cols-1 gap-3">
+                      
+                      {/* 1. Hook */}
+                      <div className="bg-white border border-gray-200 p-4 rounded-2xl space-y-2">
+                        <div className="flex justify-between items-center bg-gray-50 p-2 rounded-xl">
+                          <span className="text-xs font-bold text-gray-800 flex items-center gap-1">
+                            <Sparkles className="w-4 h-4 text-amber-500" />
+                            <span>첫 3초 후킹 지수</span>
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-mono font-bold text-gray-900">{diagnosisReport.metrics.hook.score}점</span>
+                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                              diagnosisReport.metrics.hook.status === "취약"
+                                ? "bg-red-50 text-red-600 border border-red-100"
+                                : diagnosisReport.metrics.hook.status === "개선필요"
+                                ? "bg-amber-50 text-amber-600 border border-amber-100"
+                                : "bg-teal-50 text-teal-600 border border-teal-100"
+                            }`}>
+                              {diagnosisReport.metrics.hook.status}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-gray-500 leading-relaxed pl-1.5 font-sans">
+                          {diagnosisReport.metrics.hook.feedback}
+                        </p>
+                      </div>
 
-            </main>
+                      {/* 2. Agitation */}
+                      <div className="bg-white border border-gray-200 p-4 rounded-2xl space-y-2">
+                        <div className="flex justify-between items-center bg-gray-50 p-2 rounded-xl">
+                          <span className="text-xs font-bold text-gray-800 flex items-center gap-1">
+                            <ThumbsDown className="w-4 h-4 text-red-400" />
+                            <span>불편 공감 극대화 지수</span>
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-mono font-bold text-gray-900">{diagnosisReport.metrics.agitation.score}점</span>
+                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                              diagnosisReport.metrics.agitation.status === "취약"
+                                ? "bg-red-50 text-red-600 border border-red-100"
+                                : diagnosisReport.metrics.agitation.status === "개선필요"
+                                ? "bg-amber-50 text-amber-600 border border-amber-100"
+                                : "bg-teal-50 text-teal-600 border border-teal-100"
+                            }`}>
+                              {diagnosisReport.metrics.agitation.status}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-gray-500 leading-relaxed pl-1.5 font-sans">
+                          {diagnosisReport.metrics.agitation.feedback}
+                        </p>
+                      </div>
+
+                      {/* 3. Clarity */}
+                      <div className="bg-white border border-gray-200 p-4 rounded-2xl space-y-2">
+                        <div className="flex justify-between items-center bg-gray-50 p-2 rounded-xl">
+                          <span className="text-xs font-bold text-gray-800 flex items-center gap-1">
+                            <ThumbsUp className="w-4 h-4 text-teal-500" />
+                            <span>USP 설명 선명도</span>
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-mono font-bold text-gray-900">{diagnosisReport.metrics.clarity.score}점</span>
+                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                              diagnosisReport.metrics.clarity.status === "취약"
+                                ? "bg-red-50 text-red-600 border border-red-100"
+                                : diagnosisReport.metrics.clarity.status === "개선필요"
+                                ? "bg-amber-50 text-amber-600 border border-amber-100"
+                                : "bg-teal-50 text-teal-600 border border-teal-100"
+                            }`}>
+                              {diagnosisReport.metrics.clarity.status}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-gray-500 leading-relaxed pl-1.5 font-sans">
+                          {diagnosisReport.metrics.clarity.feedback}
+                        </p>
+                      </div>
+
+                      {/* 4. Readability */}
+                      <div className="bg-white border border-gray-200 p-4 rounded-2xl space-y-2">
+                        <div className="flex justify-between items-center bg-gray-50 p-2 rounded-xl">
+                          <span className="text-xs font-bold text-gray-800 flex items-center gap-1">
+                            <Activity className="w-4 h-4 text-[#8b5cf6]" />
+                            <span>모바일 최적화 가독성</span>
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-mono font-bold text-gray-900">{diagnosisReport.metrics.readability.score}점</span>
+                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                              diagnosisReport.metrics.readability.status === "취약"
+                                ? "bg-red-50 text-red-600 border border-red-100"
+                                : diagnosisReport.metrics.readability.status === "개선필요"
+                                ? "bg-amber-50 text-amber-600 border border-amber-100"
+                                : "bg-teal-50 text-teal-600 border border-teal-100"
+                            }`}>
+                              {diagnosisReport.metrics.readability.status}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-gray-500 leading-relaxed pl-1.5 font-sans">
+                          {diagnosisReport.metrics.readability.feedback}
+                        </p>
+                      </div>
+
+                    </div>
+                  </div>
+
+                  {/* Card 3: Before vs After copy overhaul display box */}
+                  <div className="space-y-3.5">
+                    <div className="flex items-center gap-1.5 text-gray-800 font-display font-extrabold text-sm ml-1">
+                      <span className="material-symbols-outlined text-[17px] text-primary">published_with_changes</span>
+                      <span>AI 카피 대안 (개선 제안)</span>
+                    </div>
+
+                    <div className="space-y-4">
+                      {diagnosisReport.beforeAfterCopys.map((copy, i) => (
+                        <div key={i} className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-xs">
+                          
+                          {/* Section label */}
+                          <header className="bg-gray-50 px-4 py-2.5 border-b border-gray-100 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-primary" />
+                            <span className="text-xs font-bold text-gray-700">{copy.sectionName}</span>
+                          </header>
+
+                          <div className="p-4 space-y-3">
+                            
+                            {/* Before (Red) */}
+                            <div className="bg-red-50 border border-red-100 p-3.5 rounded-2xl relative">
+                              <span className="absolute right-3.5 top-3.5 text-[8px] bg-red-100 text-red-600 py-0.5 px-2 rounded-full font-extrabold uppercase">
+                                Before (기존)
+                              </span>
+                              <span className="text-[10px] text-red-500 font-bold block mb-1">단조로운 문장</span>
+                              <p className="text-xs text-gray-600 leading-relaxed font-sans pr-14 italic">
+                                "{copy.before}"
+                              </p>
+                            </div>
+
+                            {/* Arrow separator in middle */}
+                            <div className="flex justify-center my-1.5">
+                              <div className="bg-primary/5 p-1 rounded-full border border-primary/15 flex items-center justify-center">
+                                <span className="material-symbols-outlined text-primary text-base animate-pulse">arrow_downward</span>
+                              </div>
+                            </div>
+
+                            {/* After (Teal/Purple) */}
+                            <div className="bg-teal-50 border border-teal-100 p-4 rounded-2xl relative">
+                              <span className="absolute right-3.5 top-3.5 text-[8px] bg-[#ebddff] text-primary py-0.5 px-3 rounded-full font-bold uppercase flex items-center gap-1">
+                                <Sparkles className="w-2.5 h-2.5" />
+                                <span>AI 추천 한글 카피</span>
+                              </span>
+                              <span className="text-[10px] text-teal-600 font-extrabold block mb-1">전환 증가를 일으키는 구성</span>
+                              <p className="text-xs text-gray-900 font-sans font-bold leading-relaxed pr-16">
+                                {copy.after}
+                              </p>
+                            </div>
+
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Card 4: Action check lists */}
+                  <div className="bg-white p-5 rounded-3xl border border-gray-200 space-y-4">
+                    <div className="flex items-center gap-1.5 border-b border-gray-100 pb-2.5">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                      <span className="text-xs font-display font-extrabold text-[#111]">즉시 적용할 핵심 3대 실천 가이드</span>
+                    </div>
+
+                    <ul className="space-y-3">
+                      {diagnosisReport.recommendations.map((rec, i) => (
+                        <li key={i} className="flex items-start gap-2.5">
+                          <span className="w-5 h-5 bg-[#ebddff] text-primary rounded-full flex items-center justify-center text-[10px] font-mono font-black mt-0.5 flex-shrink-0">
+                            {i + 1}
+                          </span>
+                          <p className="text-xs text-gray-600 font-sans leading-relaxed">
+                            {rec}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Back to Home CTA Actions */}
+                  <div className="space-y-3 pt-2">
+                    <button 
+                      onClick={() => {
+                        // Populate basic parameters to generate a fresh detailed copy page with CRO optimized values!
+                        setName(diagnosisPrdName || "진단 상품");
+                        setCategory(diagnosisCategory);
+                        setTargetCustomer("이 상품의 고밀도 잠재고객 분들");
+                        setPainPoints([
+                          "가장 불편함을 느꼈을 법한 대표적 결핍 상황",
+                          "기존 시중의 보급형 제품 사용시 누적되는 아쉬운 애로 사항"
+                        ]);
+                        setUsPs([
+                          "가장 확실하고 투명한 강점 요인",
+                          "편안한 소지 및 환경을 배려한 최고급 설계",
+                          "소유에 최대 만족을 심는 마감과 검증"
+                        ]);
+                        setCurrentView("form-step-1");
+                      }}
+                      className="w-full bg-primary hover:bg-[#410091] text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-transform active:scale-[98%] cursor-pointer font-sans"
+                    >
+                      <Sparkles className="w-5 h-5 text-white" />
+                      <span>이 진단내용 기반으로 새 상세 카피 만들기</span>
+                    </button>
+
+                    <button 
+                      onClick={() => setCurrentView("dashboard")}
+                      className="w-full bg-white border border-[#cbd5e1] text-gray-700 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 active:scale-[98%] cursor-pointer font-sans"
+                    >
+                      <span>대시보드로 가기</span>
+                    </button>
+                  </div>
+                </main>
+              </>
+            )}
           </div>
         )}
 
