@@ -3421,17 +3421,17 @@ export default function App() {
                       <div className="space-y-4 pt-2 text-xs font-sans">
                         <div className="bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-primary/5 space-y-1">
                           <span className="text-[10px] font-bold text-primary">분석 대상 상품명</span>
-                          <p className="font-extrabold text-gray-800">{activeProject.name}</p>
+                          <p className="font-extrabold text-gray-800">{activeProject.productInfo?.name || activeProject.name || "상품"}</p>
                         </div>
 
                         <div className="bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-primary/5 space-y-1">
                           <span className="text-[10px] font-bold text-primary">설정된 대표 카테고리</span>
-                          <p className="font-extrabold text-gray-800">{activeProject.category || "기본"}</p>
+                          <p className="font-extrabold text-gray-800">{activeProject.productInfo?.category || activeProject.category || "기본"}</p>
                         </div>
 
                         <div className="bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-primary/5 space-y-1">
                           <span className="text-[10px] font-bold text-primary">특화 고객 페르소나</span>
-                          <p className="font-extrabold text-gray-800">{activeProject.targetCustomer || "잠재 고객"}</p>
+                          <p className="font-extrabold text-gray-800">{activeProject.productInfo?.targetCustomer || activeProject.targetCustomer || "잠재 고객"}</p>
                         </div>
                       </div>
 
